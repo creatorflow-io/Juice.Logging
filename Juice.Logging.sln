@@ -1,0 +1,53 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{EBCB8A7B-FD2C-48F4-9E6A-2E6B64B5953D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juice.Extensions.Logging.File", "src\Juice.Extensions.Logging.File\Juice.Extensions.Logging.File.csproj", "{4C3145BB-8627-4EBA-B193-919591BBC87C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juice.Extensions.Logging.SignalR", "src\Juice.Extensions.Logging.SignalR\Juice.Extensions.Logging.SignalR.csproj", "{2138C405-1642-4B38-BA40-D85D5318D42F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{A4F6EBB7-F665-4AF3-9D79-73506FCCA5BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Juice.Extensions.Logging.Tests.XUnit", "test\Juice.Extensions.Logging.Tests.XUnit\Juice.Extensions.Logging.Tests.XUnit.csproj", "{81ECFFB5-584C-4CF8-8422-4828D386D94F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Juice.Extensions.Logging.Tests.Host", "test\Juice.Extensions.Logging.Tests.Host\Juice.Extensions.Logging.Tests.Host.csproj", "{FBC5240F-1CCE-4B94-A8AD-66EAF29D3E0B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C3145BB-8627-4EBA-B193-919591BBC87C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C3145BB-8627-4EBA-B193-919591BBC87C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C3145BB-8627-4EBA-B193-919591BBC87C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C3145BB-8627-4EBA-B193-919591BBC87C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2138C405-1642-4B38-BA40-D85D5318D42F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2138C405-1642-4B38-BA40-D85D5318D42F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2138C405-1642-4B38-BA40-D85D5318D42F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2138C405-1642-4B38-BA40-D85D5318D42F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81ECFFB5-584C-4CF8-8422-4828D386D94F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81ECFFB5-584C-4CF8-8422-4828D386D94F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81ECFFB5-584C-4CF8-8422-4828D386D94F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81ECFFB5-584C-4CF8-8422-4828D386D94F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBC5240F-1CCE-4B94-A8AD-66EAF29D3E0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBC5240F-1CCE-4B94-A8AD-66EAF29D3E0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBC5240F-1CCE-4B94-A8AD-66EAF29D3E0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBC5240F-1CCE-4B94-A8AD-66EAF29D3E0B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4C3145BB-8627-4EBA-B193-919591BBC87C} = {EBCB8A7B-FD2C-48F4-9E6A-2E6B64B5953D}
+		{2138C405-1642-4B38-BA40-D85D5318D42F} = {EBCB8A7B-FD2C-48F4-9E6A-2E6B64B5953D}
+		{81ECFFB5-584C-4CF8-8422-4828D386D94F} = {A4F6EBB7-F665-4AF3-9D79-73506FCCA5BA}
+		{FBC5240F-1CCE-4B94-A8AD-66EAF29D3E0B} = {A4F6EBB7-F665-4AF3-9D79-73506FCCA5BA}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {717415C1-FB2B-4B17-B093-2D67BA38188A}
+	EndGlobalSection
+EndGlobal

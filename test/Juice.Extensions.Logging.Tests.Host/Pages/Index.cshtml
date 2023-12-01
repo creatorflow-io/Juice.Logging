@@ -1,0 +1,65 @@
+﻿@page
+@model Juice.Extensions.Logging.Tests.Host.Pages.IndexModel
+@{
+}
+<script src="/lib/microsoft-signalr/signalr.min.js"></script>
+<style>
+    #logConsole{
+        width: 100%;
+        height: 400px;
+        overflow-y: auto;
+    }
+    .success{
+        color: green;
+    }
+    .danger{
+        color: red;
+    }
+</style>
+<div id="logConsole"></div>
+
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/loghub")
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+    let _log = document.getElementById("logConsole");
+
+    async function start() {
+        try {
+            await connection.start();
+            console.log("SignalR Connected.");
+        } catch (err) {
+            console.log(err);
+            setTimeout(start, 5000);
+        }
+    };
+
+    connection.onclose(async () => {
+        await start();
+    });
+
+    connection.on("LoggingAsync", (serviceId, jobId, message, level, contextual, scopes) => {
+        console.log(`[${serviceId}] [${jobId}] [${level}] ${message} - ${contextual}`, scopes);
+        log(`[${serviceId}] [${jobId}] [${level}] ${message}`, contextual);
+    });
+
+    connection.on("StateAsync", (serviceId, jobId, state, message) => {
+        console.log(`[${serviceId}] [${jobId}] ${message} - ${state}`);
+        log(`[${serviceId}] [${jobId}] [${state}] ${message}`, state == "Succeeded" ? "success" : null);
+    });
+
+    function log(message, classes){
+        var e = document.createElement("div");
+        e.innerHTML = message;
+        if (classes) {
+            e.className = classes;
+        }
+        _log.appendChild(e);
+        _log.scrollTop = _log.scrollHeight;
+    }
+
+    // Start the connection.
+    start();
+</script>

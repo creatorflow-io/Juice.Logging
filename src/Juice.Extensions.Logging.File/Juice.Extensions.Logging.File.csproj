@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>$(AppTargetFramework)</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Juice.Extensions.Logging" Version="$(JuiceRefVersion)" />
+        <PackageReference Include="Juice.Extensions.Options" Version="$(JuiceRefVersion)" />
+    </ItemGroup>
+</Project>
