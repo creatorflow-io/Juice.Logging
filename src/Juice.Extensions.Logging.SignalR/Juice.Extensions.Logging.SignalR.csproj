@@ -4,6 +4,7 @@
         <TargetFrameworks>$(AppTargetFramework)</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RootNamespace>Juice</RootNamespace>
     </PropertyGroup>
     
     <ItemGroup>
@@ -13,7 +14,6 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsVersion)" />
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="$(SignalRVersion)" />
     </ItemGroup>
 

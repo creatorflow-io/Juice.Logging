@@ -22,8 +22,8 @@
                 {
                     using (_logger.BeginScope(new Dictionary<string, object>
                     {
-                        ["JobId"] = Guid.NewGuid(),
-                        ["JobDescription"] = "xUnit",
+                        ["TraceId"] = Guid.NewGuid(),
+                        ["Operation"] = "xUnit",
                     }))
                     {
                         _logger.LogInformation("Test {state}", "Start");
@@ -47,7 +47,7 @@
                                     ["Contextual"] = "danger"
                                 }))
                                 {
-                                    _logger.LogInformation("Test {state}", "failure task");
+                                    _logger.LogError("Test {state}", "failure task");
                                 }
                             }
                             else
@@ -59,7 +59,7 @@
 
                         using (_logger.BeginScope(new Dictionary<string, object>
                         {
-                            ["JobState"] = "Succeeded"
+                            ["OperationState"] = "Succeeded"
                         }))
                         {
                             _logger.LogInformation("Test {state}", "End");

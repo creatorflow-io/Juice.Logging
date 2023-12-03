@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Juice.Extensions.DependencyInjection;
+using Juice.Extensions.Logging.EF.LogMetrics;
 using Juice.Extensions.Logging.File;
 using Juice.XUnit;
 using Microsoft.Extensions.Configuration;
@@ -53,8 +54,8 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             var guid = Guid.NewGuid().ToString();
             using (logger.BeginScope(new Dictionary<string, object>
             {
-                ["JobId"] = guid,
-                ["JobDescription"] = "xUnit",
+                ["TraceId"] = guid,
+                ["Operation"] = "xUnit",
             }))
             {
                 logger.LogInformation("Test {state}", "Start");
@@ -70,9 +71,9 @@ namespace Juice.Extensions.Logging.Tests.XUnit
 
             using (logger.BeginScope(new Dictionary<string, object>
             {
-                ["JobId"] = newid,
-                ["JobDescription"] = "xUnit",
-                ["JobState"] = "Succeeded"
+                ["TraceId"] = newid,
+                ["Operation"] = "xUnit",
+                ["OperationState"] = "Succeeded"
             }))
             {
                 logger.LogInformation("Test {state}", "End");
@@ -86,9 +87,9 @@ namespace Juice.Extensions.Logging.Tests.XUnit
 
             using (logger.BeginScope(new Dictionary<string, object>
             {
-                ["JobId"] = guid,
-                ["JobDescription"] = "xUnit",
-                ["JobState"] = "Succeeded"
+                ["TraceId"] = guid,
+                ["Operation"] = "xUnit",
+                ["OperationState"] = "Succeeded"
             }))
             {
                 logger.LogInformation("Test {state}", "End");
@@ -102,9 +103,9 @@ namespace Juice.Extensions.Logging.Tests.XUnit
 
             using (logger.BeginScope(new Dictionary<string, object>
             {
-                ["JobId"] = guid,
-                ["JobDescription"] = "xUnit",
-                ["JobState"] = "Succeeded"
+                ["TraceId"] = guid,
+                ["Operation"] = "xUnit",
+                ["OperationState"] = "Succeeded"
             }))
             {
                 logger.LogInformation("Test {state}", "Rerun");
@@ -153,8 +154,8 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             var guid = Guid.NewGuid().ToString();
             using (logger.BeginScope(new Dictionary<string, object>
             {
-                ["JobId"] = guid,
-                ["JobDescription"] = "xUnit",
+                ["TraceId"] = guid,
+                ["Operation"] = "xUnit",
             }))
             {
                 logger.LogInformation("Test {state}", "Start");
@@ -162,7 +163,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
 
                 using (logger.BeginScope(new Dictionary<string, object>
                 {
-                    ["JobState"] = "Succeeded"
+                    ["OperationState"] = "Succeeded"
                 }))
                 {
                     logger.LogInformation("Test {state}", "End");
@@ -240,5 +241,17 @@ namespace Juice.Extensions.Logging.Tests.XUnit
 
         }
 
+        [Fact]
+        public async Task Datetime_should_truncateAsync()
+        {
+            for (var i = 0; i < 10; i++)
+            {
+                var now = DateTimeOffset.UtcNow;
+                var now2 = now.Truncate(TimeSpan.FromSeconds(5));
+                _output.WriteLine($"{now} => {now2}");
+                now2.Should().Be(now.AddTicks(-(now.Ticks % TimeSpan.FromSeconds(5).Ticks)));
+                await Task.Delay(1000);
+            }
+        }
     }
 }
