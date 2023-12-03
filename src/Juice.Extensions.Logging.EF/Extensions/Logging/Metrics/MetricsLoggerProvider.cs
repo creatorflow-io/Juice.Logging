@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using Juice.Extensions.Logging.EF.LogMetrics;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -86,7 +88,7 @@ namespace Juice.Extensions.Logging.Metrics
 
         protected CancellationTokenSource _shutdown = new CancellationTokenSource();
         protected Task? _backgroundTask;
-        private TimeSpan _truncate = TimeSpan.FromSeconds(1);
+        protected Stopwatch _clock = Stopwatch.StartNew();
 
         private TimeSpan GetWaitTime()
         {
@@ -130,41 +132,83 @@ namespace Juice.Extensions.Logging.Metrics
             foreach (var service in _services)
             {
                 var m = service.Value.GetValue();
-                if (m.WarningCount > 0 || m.ErrorCount > 0 || m.CriticalCount > 0)
+                if (m.TotalCount > 0)
                 {
-                    services.Add(new ServiceLogMetric(service.Key, m.ErrorCount, m.WarningCount, m.CriticalCount, timestamp));
+                    services.Add(new ServiceLogMetric(service.Key, m.ErrorCount, m.WarningCount, m.CriticalCount,
+                        m.DebugCount, m.InfoCount, timestamp));
                 }
             }
             var operations = new List<OperationLogMetric>();
             foreach (var operation in _operations)
             {
                 var m = operation.Value.GetValue();
-                if (m.WarningCount > 0 || m.ErrorCount > 0 || m.CriticalCount > 0)
+                if (m.TotalCount > 0)
                 {
-                    operations.Add(new OperationLogMetric(operation.Key, m.ErrorCount, m.WarningCount, m.CriticalCount, timestamp));
+                    operations.Add(new OperationLogMetric(operation.Key, m.ErrorCount, m.WarningCount, m.CriticalCount,
+                        m.DebugCount, m.InfoCount, timestamp));
                 }
             }
             var categories = new List<CategoryLogMetric>();
             foreach (var category in _categories)
             {
                 var m = category.Value.GetValue();
-                if (m.WarningCount > 0 || m.ErrorCount > 0 || m.CriticalCount > 0)
+                if (m.TotalCount > 0)
                 {
-                    categories.Add(new CategoryLogMetric(category.Key, m.ErrorCount, m.WarningCount, m.CriticalCount, timestamp));
+                    categories.Add(new CategoryLogMetric(category.Key, m.ErrorCount, m.WarningCount, m.CriticalCount,
+                        m.DebugCount, m.InfoCount, timestamp));
                 }
             }
+
             try
             {
+                _clock.Restart();
+
                 using var scope = _serviceScopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<LogMetricsDbContext>();
-                context.ServiceMetrics.AddRange(services);
-                context.OperationMetrics.AddRange(operations);
-                context.CategoryMetrics.AddRange(categories);
+                context.Database.BeginTransaction();
+                foreach (var service in services)
+                {
+                    var existingService = await context.ServiceMetrics.FirstOrDefaultAsync(o => o.ServiceId == service.ServiceId && o.Timestamp == timestamp);
+                    if (existingService != null)
+                    {
+                        existingService.Add(service);
+                    }
+                    else
+                    {
+                        context.ServiceMetrics.Add(service);
+                    }
+                }
+
+                var opNames = operations.Select(o => o.Operation).Distinct().ToList();
+                var existingOperations = await context.OperationMetrics.Where(o => opNames.Contains(o.Operation) && o.Timestamp == timestamp).ToListAsync();
+
+                foreach (var operation in existingOperations)
+                {
+                    operation.Add(operations.First(o => o.Operation == operation.Operation));
+                }
+                var newOperations = operations.Where(o => !existingOperations.Any(e => e.Operation == o.Operation)).ToList();
+                context.OperationMetrics.AddRange(newOperations);
+
+                var catNames = categories.Select(o => o.Category).Distinct().ToList();
+                var existingCategories = await context.CategoryMetrics.Where(o => catNames.Contains(o.Category) && o.Timestamp == timestamp).ToListAsync();
+                foreach (var category in existingCategories)
+                {
+                    category.Add(categories.First(o => o.Category == category.Category));
+                }
+                var newCategories = categories.Where(o => !existingCategories.Any(e => e.Category == o.Category)).ToList();
+                context.CategoryMetrics.AddRange(newCategories);
+
                 await context.SaveChangesAsync();
+                await context.Database.CommitTransactionAsync();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while sending metrics");
+            }
+            finally
+            {
+                _clock.Stop();
+                _logger.LogInformation("Log metrics collected in {Elapsed}", _clock.Elapsed);
             }
         }
 

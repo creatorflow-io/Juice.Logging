@@ -7,7 +7,7 @@ namespace Juice.Extensions.Logging
     public static class IsolatedLoggerHelper
     {
 
-        public static ILogger BuildLogger(string category, FileLoggerOptions options)
+        public static ILogger BuildLogger(string category, FileLoggerOptions options, LogLevel minLevel = LogLevel.Information)
         {
             var services = new ServiceCollection();
             services.AddLogging(builder =>
@@ -17,7 +17,7 @@ namespace Juice.Extensions.Logging
             return services.BuildServiceProvider().GetRequiredService<ILoggerFactory>().CreateLogger(category);
         }
 
-        public static void ConfigureLogger(ILoggingBuilder builder, string name, FileLoggerOptions loggerOptions)
+        public static void ConfigureLogger(ILoggingBuilder builder, string name, FileLoggerOptions loggerOptions, LogLevel minLevel = LogLevel.Information)
         {
             builder.ClearProviders();
             builder.AddConsole();
@@ -29,6 +29,7 @@ namespace Juice.Extensions.Logging
                 options.BufferTime = loggerOptions.BufferTime;
                 options.GeneralName = loggerOptions.GeneralName ?? name;
             });
+            builder.SetMinimumLevel(minLevel);
         }
 
     }

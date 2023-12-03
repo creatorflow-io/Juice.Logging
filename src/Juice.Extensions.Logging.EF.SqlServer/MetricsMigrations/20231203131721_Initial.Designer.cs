@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Juice.Extensions.Logging.EF.SqlServer.MetricsMigrations
 {
     [DbContext(typeof(LogMetricsDbContext))]
-    [Migration("20231203111007_Initial")]
+    [Migration("20231203131721_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -33,13 +33,19 @@ namespace Juice.Extensions.Logging.EF.SqlServer.MetricsMigrations
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<long>("Criticals")
+                    b.Property<long>("CriCount")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("Errors")
+                    b.Property<long>("DbgCount")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("Warnings")
+                    b.Property<long>("ErrCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("InfCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("WrnCount")
                         .HasColumnType("bigint");
 
                     b.HasKey("Category", "Timestamp");
@@ -55,13 +61,19 @@ namespace Juice.Extensions.Logging.EF.SqlServer.MetricsMigrations
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<long>("Criticals")
+                    b.Property<long>("CriCount")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("Errors")
+                    b.Property<long>("DbgCount")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("Warnings")
+                    b.Property<long>("ErrCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("InfCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("WrnCount")
                         .HasColumnType("bigint");
 
                     b.HasKey("Operation", "Timestamp");
@@ -77,13 +89,19 @@ namespace Juice.Extensions.Logging.EF.SqlServer.MetricsMigrations
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<long>("Criticals")
+                    b.Property<long>("CriCount")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("Errors")
+                    b.Property<long>("DbgCount")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("Warnings")
+                    b.Property<long>("ErrCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("InfCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("WrnCount")
                         .HasColumnType("bigint");
 
                     b.HasKey("ServiceId", "Timestamp");

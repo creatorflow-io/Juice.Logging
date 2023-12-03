@@ -34,9 +34,11 @@ namespace Juice.Extensions.Logging.EF.PostgreSQL.MetricsMigrations
                 {
                     Category = table.Column<string>(type: "text", nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    Errors = table.Column<long>(type: "bigint", nullable: false),
-                    Warnings = table.Column<long>(type: "bigint", nullable: false),
-                    Criticals = table.Column<long>(type: "bigint", nullable: false)
+                    DbgCount = table.Column<long>(type: "bigint", nullable: false),
+                    InfCount = table.Column<long>(type: "bigint", nullable: false),
+                    ErrCount = table.Column<long>(type: "bigint", nullable: false),
+                    WrnCount = table.Column<long>(type: "bigint", nullable: false),
+                    CriCount = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -50,9 +52,11 @@ namespace Juice.Extensions.Logging.EF.PostgreSQL.MetricsMigrations
                 {
                     Operation = table.Column<string>(type: "text", nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    Errors = table.Column<long>(type: "bigint", nullable: false),
-                    Warnings = table.Column<long>(type: "bigint", nullable: false),
-                    Criticals = table.Column<long>(type: "bigint", nullable: false)
+                    DbgCount = table.Column<long>(type: "bigint", nullable: false),
+                    InfCount = table.Column<long>(type: "bigint", nullable: false),
+                    ErrCount = table.Column<long>(type: "bigint", nullable: false),
+                    WrnCount = table.Column<long>(type: "bigint", nullable: false),
+                    CriCount = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -66,9 +70,11 @@ namespace Juice.Extensions.Logging.EF.PostgreSQL.MetricsMigrations
                 {
                     ServiceId = table.Column<Guid>(type: "uuid", nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    Errors = table.Column<long>(type: "bigint", nullable: false),
-                    Warnings = table.Column<long>(type: "bigint", nullable: false),
-                    Criticals = table.Column<long>(type: "bigint", nullable: false)
+                    DbgCount = table.Column<long>(type: "bigint", nullable: false),
+                    InfCount = table.Column<long>(type: "bigint", nullable: false),
+                    ErrCount = table.Column<long>(type: "bigint", nullable: false),
+                    WrnCount = table.Column<long>(type: "bigint", nullable: false),
+                    CriCount = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
