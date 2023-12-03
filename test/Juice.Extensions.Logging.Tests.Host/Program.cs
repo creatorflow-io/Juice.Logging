@@ -1,4 +1,5 @@
 ﻿using Juice.Extensions.Logging;
+using Juice.Extensions.Logging.EF.DependencyInjection;
 using Juice.Extensions.Logging.Tests.Host;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,8 @@ builder.Services.AddSignalR();
 builder.Services.AddHostedService<LogService>();
 builder.Logging.AddFileLogger(builder.Configuration.GetSection("Logging:File"));
 builder.Logging.AddSignalRLogger(builder.Configuration.GetSection("Logging:SignalR"));
+builder.Logging.AddDbLogger(builder.Configuration.GetSection("Logging:Db"), builder.Configuration);
+builder.Logging.AddMetricsLogger(builder.Configuration.GetSection("Logging:Metrics"), builder.Configuration);
 
 var app = builder.Build();
 
@@ -22,6 +25,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -31,5 +35,9 @@ app.UseAuthorization();
 app.MapRazorPages();
 
 app.MapHub<LogHub>("/loghub");
+
+await app.MigrateLogDbAsync();
+
+await app.MigrateLogMetricsDbAsync();
 
 app.Run();

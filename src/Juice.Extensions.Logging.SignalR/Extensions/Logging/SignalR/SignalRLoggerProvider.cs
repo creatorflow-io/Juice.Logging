@@ -18,9 +18,9 @@ namespace Juice.Extensions.Logging.SignalR
         public override void WriteLog<TState>(LogEntry<TState> entry, string formattedMessage, IExternalScopeProvider? scopeProvider)
         {
             Guid? serviceId = default;
-            string? jobId = default;
+            string? traceId = default;
             string? contextual = default;
-            string? jobState = default;
+            string? state = default;
             List<string> scopes = new List<string>();
 
             #region Collect log scopes
@@ -32,13 +32,13 @@ namespace Juice.Extensions.Logging.SignalR
                     {
                         serviceId = Guid.Parse(props.First(p => p.Key == "ServiceId").Value.ToString()!);
                     }
-                    if (props.Any(p => p.Key == "JobId"))
+                    if (props.Any(p => p.Key == "TraceId"))
                     {
-                        jobId = props.First(p => p.Key == "JobId").Value.ToString();
+                        traceId = props.First(p => p.Key == "TraceId").Value.ToString();
                     }
-                    if (props.Any(p => p.Key == "JobState"))
+                    if (props.Any(p => p.Key == "OperationState"))
                     {
-                        jobState = props.First(p => p.Key == "JobState").Value.ToString();
+                        state = props.First(p => p.Key == "OperationState").Value.ToString();
                     }
                     if (props.Any(p => p.Key == "Contextual"))
                     {
@@ -60,13 +60,13 @@ namespace Juice.Extensions.Logging.SignalR
             if (serviceId.HasValue)
             {
                 var logger = GetLogger(serviceId.Value);
-                if (!string.IsNullOrEmpty(jobState))
+                if (!string.IsNullOrEmpty(state))
                 {
-                    logger.StateAsync(serviceId.Value, jobId, jobState, formattedMessage).Wait();
+                    logger.StateAsync(serviceId.Value, traceId, state, formattedMessage).Wait();
                 }
                 else
                 {
-                    logger.LoggingAsync(serviceId.Value, jobId, formattedMessage,
+                    logger.LoggingAsync(serviceId.Value, traceId, entry.Category, formattedMessage,
                         entry.LogLevel, contextual, scopes.ToArray()).Wait();
                 }
             }

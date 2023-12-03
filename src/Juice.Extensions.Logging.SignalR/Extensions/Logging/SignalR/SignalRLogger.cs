@@ -19,33 +19,9 @@ namespace Juice.Extensions.Logging.SignalR
                 if (string.IsNullOrEmpty(options.HubUrl)) { throw new ArgumentException("SignalR:HubUrl is null or empty"); }
                 if (options.Directory == null) { throw new ArgumentException("SignalR:Directory is null"); }
 
-                _logger = BuildLogger();
+                _logger = IsolatedLoggerHelper.BuildLogger("SignalRLogger", _options);
             }
             _channel = channel;
-        }
-
-        private ILogger BuildLogger()
-        {
-            var services = new ServiceCollection();
-            services.AddLogging(builder =>
-            {
-                ConfigureLogger(builder, "SignalRLogger");
-            });
-            return services.BuildServiceProvider().GetRequiredService<ILoggerFactory>().CreateLogger("SignalRLogger");
-        }
-
-        private void ConfigureLogger(ILoggingBuilder builder, string name)
-        {
-            builder.ClearProviders();
-            builder.AddConsole();
-            builder.AddFileLogger(options =>
-            {
-                options.Directory = _options.Directory;
-                options.RetainPolicyFileCount = _options.RetainPolicyFileCount;
-                options.ForkJobLog = false;
-                options.BufferTime = _options.BufferTime;
-                options.GeneralName = _options.GeneralName ?? name;
-            });
         }
 
         private HubConnection BuildConnection()
@@ -59,13 +35,13 @@ namespace Juice.Extensions.Logging.SignalR
                     })
                     .ConfigureLogging(builder =>
                     {
-                        ConfigureLogger(builder, "SignalRLoggerHubConnection");
+                        IsolatedLoggerHelper.ConfigureLogger(builder, "SignalRLoggerHubConnection", _options);
                     })
                     .Build()
                     ;
         }
 
-        public async Task LoggingAsync(Guid serviceId, string? jobId, string message, LogLevel level, string? contextual, string[] scopes)
+        public async Task LoggingAsync(Guid serviceId, string? traceId, string category, string message, LogLevel level, string? contextual, string[] scopes)
         {
             if (_options.Disabled || _connection == null || _connection.State != HubConnectionState.Connected)
             {
@@ -76,11 +52,11 @@ namespace Juice.Extensions.Logging.SignalR
                 var method = _options.LogMethod ?? "LoggingAsync";
                 if (_options.IncludeScopes)
                 {
-                    await _connection.SendAsync(method, serviceId, jobId, message, level, contextual, scopes);
+                    await _connection.SendAsync(method, serviceId, traceId, category, message, level, contextual, scopes);
                 }
                 else
                 {
-                    await _connection.SendAsync(method, serviceId, jobId, message, level, contextual);
+                    await _connection.SendAsync(method, serviceId, traceId, message, level, contextual);
                 }
             }
             catch (Exception ex)

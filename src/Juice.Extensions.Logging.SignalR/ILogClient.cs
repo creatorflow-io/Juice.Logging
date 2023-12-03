@@ -8,7 +8,7 @@ namespace Juice.Extensions.Logging.SignalR
     /// </summary>
     public interface ILogClient
     {
-        Task LoggingAsync(Guid serviceId, string? jobId, string message, LogLevel level, string? contextual, string[] scopes);
-        Task StateAsync(Guid serviceId, string? jobId, string state, string message);
+        Task LoggingAsync(Guid serviceId, string? traceId, string category, string message, LogLevel level, string? contextual, string[] scopes);
+        Task StateAsync(Guid serviceId, string? traceId, string state, string message);
     }
 }

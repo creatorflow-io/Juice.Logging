@@ -40,14 +40,14 @@
         await start();
     });
 
-    connection.on("LoggingAsync", (serviceId, jobId, message, level, contextual, scopes) => {
-        console.log(`[${serviceId}] [${jobId}] [${level}] ${message} - ${contextual}`, scopes);
-        log(`[${serviceId}] [${jobId}] [${level}] ${message}`, contextual);
+    connection.on("LoggingAsync", (serviceId, traceId, category, message, level, contextual, scopes) => {
+        console.log(`[${serviceId}] [${traceId}] [${level}] [${category}] ${message} - ${contextual}`, scopes);
+        log(`[${serviceId}] [${traceId}] [${level}] [${category}] ${message}`, contextual);
     });
 
-    connection.on("StateAsync", (serviceId, jobId, state, message) => {
-        console.log(`[${serviceId}] [${jobId}] ${message} - ${state}`);
-        log(`[${serviceId}] [${jobId}] [${state}] ${message}`, state == "Succeeded" ? "success" : null);
+    connection.on("StateAsync", (serviceId, traceId, state, message) => {
+        console.log(`[${serviceId}] [${traceId}] ${message} - ${state}`);
+        log(`[${serviceId}] [${traceId}] [${state}] ${message}`, state == "Succeeded" ? "success" : null);
     });
 
     function log(message, classes){

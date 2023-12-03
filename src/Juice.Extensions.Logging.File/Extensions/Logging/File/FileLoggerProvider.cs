@@ -20,7 +20,7 @@ namespace Juice.Extensions.Logging.File
 
         public override void WriteLog<TState>(LogEntry<TState> entry, string formattedMessage, IExternalScopeProvider? scopeProvider)
         {
-            var log = new LogEntry(DateTimeOffset.Now, entry.Category, formattedMessage, entry.LogLevel);
+            var log = new LogEntry(DateTimeOffset.Now, entry.Category, formattedMessage, entry.LogLevel, entry.Exception);
 
             #region Collect log scopes
             scopeProvider?.ForEachScope((value, loggingProps) =>
@@ -45,26 +45,23 @@ namespace Juice.Extensions.Logging.File
             #endregion
 
             #region Check job scope to fork new log file for this job
-            if (Options.ForkJobLog && (log.Scopes?.Any(s => s.Properties != null && s.Properties.ContainsKey("JobId")) ?? false))
+            if (Options.ForkJobLog && (log.Scopes?.Any(s => s.Properties != null && s.Properties.ContainsKey("TraceId")) ?? false))
             {
-                var jobScope = log.Scopes.Last(s => s.Properties != null
-                       && s.Properties.ContainsKey("JobId"));
+                var traceId = log.Scopes.Last(s => s.Properties != null
+                       && s.Properties.ContainsKey("TraceId")).Properties!["TraceId"]?.ToString();
+                var operation = log.Scopes.LastOrDefault(s => s.Properties != null && s.Properties.ContainsKey("Operation"))?
+                        .Properties?["Operation"]?.ToString();
 
-                var jobId = jobScope.Properties!["JobId"]?.ToString();
-                var jobDescription = (jobScope.Properties?.ContainsKey("JobDescription") ?? false)
-                    ? jobScope.Properties?["JobDescription"]?.ToString()
-                    : default;
-
-                var fileName = jobId;
-                if (!string.IsNullOrEmpty(jobDescription))
+                var fileName = traceId;
+                if (!string.IsNullOrEmpty(operation))
                 {
                     if (string.IsNullOrEmpty(fileName))
                     {
-                        fileName = jobDescription;
+                        fileName = operation;
                     }
                     else
                     {
-                        fileName += " - " + jobDescription;
+                        fileName += " - " + operation;
                     }
                 }
                 if (!string.IsNullOrEmpty(fileName))
@@ -73,9 +70,9 @@ namespace Juice.Extensions.Logging.File
                 }
 
                 var stateScope = log.Scopes.LastOrDefault(s => s.Properties != null
-                                   && s.Properties.ContainsKey("JobState"));
-                var jobState = stateScope?.Properties?["JobState"]?.ToString() ?? default;
-                log.SetState(jobState);
+                                   && s.Properties.ContainsKey("OperationState"));
+                var state = stateScope?.Properties?["OperationState"]?.ToString() ?? default;
+                log.SetState(state);
             }
             #endregion
 

@@ -6,7 +6,7 @@ namespace Juice.Extensions.Logging.File
 {
     internal class FileLogger : IDisposable
     {
-        private ConcurrentQueue<LogEntry> _logQueue = new ConcurrentQueue<LogEntry>();
+        private ConcurrentQueue<LogEntry> _logQueue = new();
 
         private string _directory;
         private string _filePath;
@@ -176,6 +176,10 @@ namespace Juice.Extensions.Logging.File
                     sb.AppendFormat("{0} {1}: {2}", time, GetLevelShortName(log.LogLevel), log.Category);
                     sb.AppendLine();
                     sb.AppendLine(log.Message);
+                }
+                if (log.Exception != null)
+                {
+                    sb.AppendLine(log.Exception.StackTrace);
                 }
             }
             if (stop)
