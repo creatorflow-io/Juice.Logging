@@ -129,6 +129,7 @@ namespace Juice.Extensions.Logging.Metrics
         private async Task CollectAsync(DateTimeOffset timestamp)
         {
             var services = new List<ServiceLogMetric>();
+            var allService = new LogMetric(0, 0, 0, 0, 0);
             foreach (var service in _services)
             {
                 var m = service.Value.GetValue();
@@ -136,9 +137,16 @@ namespace Juice.Extensions.Logging.Metrics
                 {
                     services.Add(new ServiceLogMetric(service.Key, m.ErrorCount, m.WarningCount, m.CriticalCount,
                         m.DebugCount, m.InfoCount, timestamp));
+                    allService.Add(m);
                 }
             }
+            if (allService.TotalCount > 0)
+            {
+                services.Add(new ServiceLogMetric(Guid.Empty, allService.ErrorCount, allService.WarningCount, allService.CriticalCount,
+                                                            allService.DebugCount, allService.InfoCount, timestamp));
+            }
             var operations = new List<OperationLogMetric>();
+            var allOperation = new LogMetric(0, 0, 0, 0, 0);
             foreach (var operation in _operations)
             {
                 var m = operation.Value.GetValue();
@@ -146,9 +154,16 @@ namespace Juice.Extensions.Logging.Metrics
                 {
                     operations.Add(new OperationLogMetric(operation.Key, m.ErrorCount, m.WarningCount, m.CriticalCount,
                         m.DebugCount, m.InfoCount, timestamp));
+                    allOperation.Add(m);
                 }
             }
+            if (allOperation.TotalCount > 0)
+            {
+                operations.Add(new OperationLogMetric("Total", allOperation.ErrorCount, allOperation.WarningCount, allOperation.CriticalCount,
+                                                              allOperation.DebugCount, allOperation.InfoCount, timestamp));
+            }
             var categories = new List<CategoryLogMetric>();
+            var allCategory = new LogMetric(0, 0, 0, 0, 0);
             foreach (var category in _categories)
             {
                 var m = category.Value.GetValue();
@@ -156,7 +171,13 @@ namespace Juice.Extensions.Logging.Metrics
                 {
                     categories.Add(new CategoryLogMetric(category.Key, m.ErrorCount, m.WarningCount, m.CriticalCount,
                         m.DebugCount, m.InfoCount, timestamp));
+                    allCategory.Add(m);
                 }
+            }
+            if (allCategory.TotalCount > 0)
+            {
+                categories.Add(new CategoryLogMetric("Total", allCategory.ErrorCount, allCategory.WarningCount, allCategory.CriticalCount,
+                                           allCategory.DebugCount, allCategory.InfoCount, timestamp));
             }
 
             try

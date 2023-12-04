@@ -62,5 +62,14 @@ namespace Juice.Extensions.Logging.Metrics
                 Interlocked.Exchange(ref _infoCount, 0), Interlocked.Exchange(ref _debugCount, 0)
                 );
         }
+
+        public void Add(LogMetric metric)
+        {
+            Interlocked.Add(ref _warningCount, metric.WarningCount);
+            Interlocked.Add(ref _errorCount, metric.ErrorCount);
+            Interlocked.Add(ref _criticalCount, metric.CriticalCount);
+            Interlocked.Add(ref _infoCount, metric.InfoCount);
+            Interlocked.Add(ref _debugCount, metric.DebugCount);
+        }
     }
 }
