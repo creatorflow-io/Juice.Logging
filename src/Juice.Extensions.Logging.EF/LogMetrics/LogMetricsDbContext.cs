@@ -25,6 +25,7 @@ namespace Juice.Extensions.Logging.EF.LogMetrics
             {
                 builder.ToTable("ServiceLogMetrics", Schema);
                 builder.HasKey(x => new { x.ServiceId, x.Timestamp });
+
             });
 
             builder.Entity<CategoryLogMetric>(builder =>
