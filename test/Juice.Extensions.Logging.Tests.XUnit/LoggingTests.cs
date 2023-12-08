@@ -39,7 +39,12 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 {
                     builder.ClearProviders()
                     .AddTestOutputLogger()
-                    .AddFileLogger(configuration.GetSection("Logging:File"))
+                    .AddFileLogger(options =>
+                    {
+                        options.Directory = "C:\\Workspace\\Services\\logs";
+                        options.BufferTime = TimeSpan.FromSeconds(1);
+                        options.IncludeScopes = true;
+                    })
                     .AddConfiguration(configuration.GetSection("Logging"));
                 });
                 configuration.GetSection("Logging:File").Bind(logOptions);
@@ -58,8 +63,8 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 ["Operation"] = "xUnit",
             }))
             {
-                logger.LogInformation("Test {state}", "Start");
-                logger.LogInformation("Test {state}", "Procssing");
+                logger.LogInformation("Trace1 #1 Test 1 {state}", "Start");
+                logger.LogInformation("Trace1 #1 Test 1 {state}", "Procssing");
             }
 
             await Task.Delay(logTime);
@@ -76,7 +81,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 ["OperationState"] = "Succeeded"
             }))
             {
-                logger.LogInformation("Test {state}", "End");
+                logger.LogInformation("Trace2 Test 2 {state}", "End");
             }
 
             await Task.Delay(logTime);
@@ -84,7 +89,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             _output.WriteLine(logFile2);
             FileAPI.Exists(logFile2).Should().BeTrue();
             FileAPI.Exists(logFile).Should().BeTrue();
-
+            using (logger.BeginScope("Scoped log outside the file"))
             using (logger.BeginScope(new Dictionary<string, object>
             {
                 ["TraceId"] = guid,
@@ -92,7 +97,11 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 ["OperationState"] = "Succeeded"
             }))
             {
-                logger.LogInformation("Test {state}", "End");
+                using (logger.BeginScope("Nested log"))
+                {
+                    logger.LogInformation("Trace1 #1 Test 3 {state}", "Inside");
+                }
+                logger.LogInformation("Trace1 #1 Test 3 {state}", "End");
             }
 
             await Task.Delay(logTime);
@@ -108,8 +117,8 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 ["OperationState"] = "Succeeded"
             }))
             {
-                logger.LogInformation("Test {state}", "Rerun");
-                logger.LogInformation("Test {state}", "End");
+                logger.LogInformation("Trace1 #2 Test 4 {state}", "Rerun");
+                logger.LogInformation("Trace1 #2 Test 4 {state}", "End");
             }
 
             await Task.Delay(logTime);
@@ -200,7 +209,12 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 {
                     builder.ClearProviders()
                     .AddTestOutputLogger()
-                    .AddFileLogger(configuration.GetSection("Logging:File"))
+                    .AddFileLogger(options =>
+                    {
+                        options.Directory = "C:\\Workspace\\Services\\logs";
+                        options.BufferTime = TimeSpan.FromSeconds(1);
+                        options.IncludeScopes = true;
+                    })
                     .AddConfiguration(configuration.GetSection("Logging"));
                 });
                 configuration.GetSection("Logging:File").Bind(logOptions);

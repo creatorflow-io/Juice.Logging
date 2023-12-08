@@ -65,7 +65,7 @@ namespace Juice.Extensions.Logging.SignalR
             }
         }
 
-        public async Task StateAsync(Guid serviceId, string? jobId, string state, string message)
+        public async Task StateAsync(Guid serviceId, string? traceId, string state, string message)
         {
             if (_options.Disabled || _connection == null || _connection.State != HubConnectionState.Connected)
             {
@@ -75,7 +75,7 @@ namespace Juice.Extensions.Logging.SignalR
             {
                 var method = _options.StateMethod ?? "StateAsync";
 
-                await _connection.SendAsync(method, serviceId, jobId, state, message);
+                await _connection.SendAsync(method, serviceId, traceId, state, message);
             }
             catch (Exception ex)
             {

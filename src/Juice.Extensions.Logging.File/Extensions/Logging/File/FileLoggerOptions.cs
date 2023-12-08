@@ -9,5 +9,9 @@
         public TimeSpan BufferTime { get; set; } = TimeSpan.FromSeconds(5);
         public bool ForkJobLog { get; set; } = true;
         public bool IncludeScopes { get; set; }
+        /// <summary>
+        /// Include categories in named file
+        /// </summary>
+        public bool IncludeCategories { get; set; }
     }
 }

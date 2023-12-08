@@ -9,9 +9,9 @@ namespace Juice.Extensions.Logging.Tests.Host
         {
             await Clients.Others.LoggingAsync(serviceId, traceId, category, message, level, contextual, scopes);
         }
-        public async Task StateAsync(Guid serviceId, string? jobId, string state, string message)
+        public async Task StateAsync(Guid serviceId, string? traceId, string state, string message)
         {
-            await Clients.Others.StateAsync(serviceId, jobId, state, message);
+            await Clients.Others.StateAsync(serviceId, traceId, state, message);
         }
     }
 }

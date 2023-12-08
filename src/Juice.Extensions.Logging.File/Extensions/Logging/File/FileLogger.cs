@@ -16,8 +16,12 @@ namespace Juice.Extensions.Logging.File
         private int _counter = 0;
         private TimeSpan _bufferTime = TimeSpan.FromSeconds(5);
         private bool _includeScopes = false;
+        private bool _includeCategories = false;
+        private bool _fork = false;
+        private bool _named = false;
+        private readonly StringBuilder _sb = new();
 
-        public FileLogger(string? directory, FileLoggerOptions options)
+        public FileLogger(string? directory, FileLoggerOptions options, bool named)
         {
             if (options.RetainPolicyFileCount > 0)
             {
@@ -33,6 +37,9 @@ namespace Juice.Extensions.Logging.File
                 _bufferTime = options.BufferTime;
             }
             _includeScopes = options.IncludeScopes;
+            _includeCategories = options.IncludeCategories;
+            _fork = options.ForkJobLog;
+            _named = named;
         }
         #region Logging
         /// <summary>
@@ -80,7 +87,16 @@ namespace Juice.Extensions.Logging.File
         private void ForkNewFile(string fileName)
         {
             // if provider request to fork to specified fileName, store origial file name to use after
-            if (_forked) { return; }
+            if (_forked)
+            {
+                if (fileName.Equals(Path.GetFileNameWithoutExtension(_filePath)))
+                {
+                    return;
+                }
+                RestoreOriginFile(default);
+            }
+            WriteLineAsync("Begin " + fileName + "\n").Wait();
+
             _forked = true;
             _originFilePath = _filePath;
             BeginFile(fileName);
@@ -88,22 +104,31 @@ namespace Juice.Extensions.Logging.File
 
         private void RestoreOriginFile(string? state)
         {
-            _forked = false;
-            if (!string.IsNullOrEmpty(_originFilePath))
+            if (_forked && !string.IsNullOrEmpty(_originFilePath))
             {
+                _forked = false;
+
                 if (!string.IsNullOrEmpty(state))
                 {
-                    var newFile = Path.Combine(Path.GetDirectoryName(_filePath)!, Path.GetFileNameWithoutExtension(_filePath) + "_" + state + Path.GetExtension(_filePath));
-                    var ver = 0;
-                    while (FileAPI.Exists(newFile))
-                    {
-                        newFile = Path.Combine(Path.GetDirectoryName(_filePath)!, Path.GetFileNameWithoutExtension(_filePath) + "_" + state + " (" + (++ver) + ")" + Path.GetExtension(_filePath));
-                    }
-
-                    FileAPI.Move(_filePath, newFile);
+                    RenameFile(_filePath, state);
                 }
                 _filePath = _originFilePath;
                 _originFilePath = default;
+            }
+        }
+
+        private void RenameFile(string filePath, string state)
+        {
+            if (FileAPI.Exists(filePath))
+            {
+                var newFile = Path.Combine(Path.GetDirectoryName(filePath)!, Path.GetFileNameWithoutExtension(filePath) + "_" + state + Path.GetExtension(filePath));
+                var ver = 0;
+                while (FileAPI.Exists(newFile))
+                {
+                    newFile = Path.Combine(Path.GetDirectoryName(filePath)!, Path.GetFileNameWithoutExtension(filePath) + "_" + state + " (" + (++ver) + ")" + Path.GetExtension(filePath));
+                }
+
+                FileAPI.Move(filePath, newFile);
             }
         }
 
@@ -128,69 +153,34 @@ namespace Juice.Extensions.Logging.File
             }
         }
 
-        private List<string> _scopes = new();
-        /// <summary>
-        /// Dequeue and write log entry to file
-        /// </summary>
-        private async Task WriteFromQueueAsync(bool stop = false)
+        private async Task FlushAsync()
         {
-            var sb = new StringBuilder();
-            string? state = default!;
-            while (_logQueue.TryDequeue(out var log))
-            {
-                if (log.FileName == null)
-                {
-                    if (_forked)
-                    {
-                        await WriteLineAsync(sb.ToString());
-                        sb.Clear();
-                        RestoreOriginFile(state);
-                    }
-                }
-                else
-                {
-                    if (!_forked)
-                    {
-                        await WriteLineAsync(sb.ToString());
-                        sb.Clear();
-                        ForkNewFile(log.FileName);
-                    }
-                    if (!string.IsNullOrEmpty(log.State))
-                    {
-                        state = log.State;
-                    }
-                }
+            await WriteLineAsync(_sb.ToString());
+            _sb.Clear();
+        }
 
-                var scopes = log.GetScopes();
-                CompareAndBuildScope(sb, _scopes, scopes, log.Category);
-                _scopes = scopes;
+        private List<string> _scopes = new();
 
-                var time = log.Timestamp.ToLocalTime().ToString("HH:mm:ss.ff");
-                if (scopes.Any() && _includeScopes)
-                {
-                    sb.AppendFormat("{0} {1}: {2}", time, GetLevelShortName(log.LogLevel), log.Message);
-                    sb.AppendLine();
-                }
-                else
-                {
-                    sb.AppendFormat("{0} {1}: {2}", time, GetLevelShortName(log.LogLevel), log.Category);
-                    sb.AppendLine();
-                    sb.AppendLine(log.Message);
-                }
-                if (log.Exception != null)
-                {
-                    sb.AppendLine(log.Exception.StackTrace);
-                }
-            }
-            if (stop)
+        private void WriteInteral(LogEntry log)
+        {
+            var scopes = log.GetScopes();
+
+            var time = log.Timestamp.ToLocalTime().ToString("HH:mm:ss.ff");
+            var includeCategory = _includeCategories || (!_named && !_forked);
+            if ((scopes.Any() && _includeScopes) || !includeCategory)
             {
-                CompareAndBuildScope(sb, _scopes, new List<string>(), default);
+                _sb.AppendFormat("{0} {1}: {2}", time, GetLevelShortName(log.LogLevel), log.Message);
+                _sb.AppendLine();
             }
-            await WriteLineAsync(sb.ToString());
-            sb.Clear();
-            if (_forked)
+            else
             {
-                RestoreOriginFile(state);
+                _sb.AppendFormat("{0} {1}: {2}", time, GetLevelShortName(log.LogLevel), log.Category);
+                _sb.AppendLine();
+                _sb.AppendLine(log.Message);
+            }
+            if (log.Exception != null)
+            {
+                _sb.AppendLine(log.Exception.StackTrace);
             }
         }
 
@@ -208,38 +198,126 @@ namespace Juice.Extensions.Logging.File
             };
         }
 
-        private void CompareAndBuildScope(StringBuilder sb, List<string> scopes, List<string> newScopes, string? caterogy)
+        public void BeginScope<TState>(TState state)
+        {
+            BeginScopeInternalAsync(state).Wait();
+        }
+        public void EndScope<TState>(TState state)
+        {
+            EndScopeInternalAsync(state).Wait();
+        }
+        private async Task BeginScopeInternalAsync<TState>(TState state)
+        {
+            if (state is string scope)
+            {
+                var i = _scopes.IndexOf(scope);
+                if (i == -1)
+                {
+                    var newScopes = new List<string>(_scopes)
+                    {
+                        scope
+                    };
+                    BeginScopes(_sb, _scopes, newScopes);
+                    _scopes = newScopes;
+                }
+            }
+            else if (state is string[] scopes)
+            {
+                var newScopes = new List<string>(_scopes);
+                newScopes.AddRange(scopes);
+                BeginScopes(_sb, _scopes, newScopes);
+                _scopes = newScopes;
+            }
+            else if (state is IEnumerable<KeyValuePair<string, object>> kvps)
+            {
+                if (_fork && kvps.Any(kvp => kvp.Key == "TraceId"))
+                {
+                    var traceId = kvps.Single(kvp => kvp.Key == "TraceId").Value?.ToString();
+                    var operation = kvps.Single(kvp => kvp.Key == "Operation").Value?.ToString();
+                    if (!string.IsNullOrEmpty(traceId))
+                    {
+                        await FlushAsync();
+                        ForkNewFile(FileLoggerProvider.GetForkedFileName(traceId, operation));
+                    }
+                }
+            }
+        }
+        private async Task EndScopeInternalAsync<TState>(TState state)
+        {
+            if (state is string scope)
+            {
+                var i = _scopes.IndexOf(scope);
+                if (i >= 0)
+                {
+                    var newScopes = _scopes.Take(i).ToList();
+                    EndScopes(_sb, _scopes, newScopes);
+                    _scopes = newScopes;
+                    await FlushAsync();
+                }
+            }
+            else if (state is string[] scopes)
+            {
+                var newScopes = new List<string>(_scopes);
+                foreach (var s in scopes)
+                {
+                    var i = newScopes.LastIndexOf(s);
+                    if (i >= 0)
+                    {
+                        newScopes = newScopes.Take(i).ToList();
+                    }
+                }
+                EndScopes(_sb, _scopes, newScopes);
+                _scopes = newScopes;
+                await FlushAsync();
+            }
+            else if (_forked && state is IEnumerable<KeyValuePair<string, object>> kvps
+                && kvps.Any(kvp => kvp.Key == "OperationState"))
+            {
+                await FlushAsync();
+                RestoreOriginFile(kvps.First(kvp => kvp.Key == "OperationState").Value.ToString());
+            }
+        }
+
+        private void EndScopes(StringBuilder sb, List<string> scopes, List<string> newScopes)
+        {
+            for (var i = 0; i < scopes.Count; i++)
+            {
+                if (i >= newScopes.Count)
+                {
+                    sb.AppendLine();
+                    for (var j = scopes.Count - 1; j >= i; j--)
+                    {
+                        sb.AppendFormat("{0}   End: {1}", new string('-', (j + 1) * 4), scopes[j]);
+                        sb.AppendLine();
+                    }
+                    break;
+                }
+                if (scopes[i] != newScopes[i])
+                {
+                    sb.AppendLine();
+                    for (var j = scopes.Count - 1; j >= i; j--)
+                    {
+                        sb.AppendFormat("{0}   End: {1}", new string('-', (j + 1) * 4), scopes[j]);
+                        sb.AppendLine();
+                    }
+                    sb.AppendLine();
+                    return;
+                }
+            }
+        }
+
+        private void BeginScopes(StringBuilder sb, List<string> scopes, List<string> newScopes)
         {
             if (_includeScopes)
             {
                 for (var i = 0; i < scopes.Count; i++)
                 {
-                    if (i >= newScopes.Count)
-                    {
-                        sb.AppendLine();
-                        for (var j = scopes.Count - 1; j >= i; j--)
-                        {
-                            sb.AppendFormat("{0}   End: {1}", new string('-', (j + 1) * 4), scopes[j]);
-                            sb.AppendLine();
-                        }
-                        break;
-                    }
                     if (scopes[i] != newScopes[i])
                     {
-                        sb.AppendLine();
-                        for (var j = scopes.Count - 1; j >= i; j--)
-                        {
-                            sb.AppendFormat("{0}   End: {1}", new string('-', (j + 1) * 4), scopes[j]);
-                            sb.AppendLine();
-                        }
                         for (var j = i; j < newScopes.Count; j++)
                         {
                             sb.AppendFormat("{0} Begin: {1}", new string('-', (j + 1) * 4), newScopes[j]);
                             sb.AppendLine();
-                            if (caterogy != null)
-                            {
-                                sb.AppendLine(caterogy);
-                            }
                         }
                         sb.AppendLine();
                         return;
@@ -251,10 +329,6 @@ namespace Juice.Extensions.Logging.File
                     {
                         sb.AppendFormat("{0} Begin: {1}", new string('-', (j + 1) * 4), newScopes[j]);
                         sb.AppendLine();
-                        if (caterogy != null)
-                        {
-                            sb.AppendLine(caterogy);
-                        }
                     }
                     sb.AppendLine();
                 }
@@ -267,14 +341,13 @@ namespace Juice.Extensions.Logging.File
         /// <param name="logEntry"></param>
         public void Write(LogEntry logEntry)
         {
-            _logQueue.Enqueue(logEntry);
+            WriteInteral(logEntry);
         }
         #endregion
 
         #region Service
 
-
-        protected CancellationTokenSource _shutdown;
+        protected CancellationTokenSource? _shutdown;
         protected Task? _backgroundTask;
 
         /// <summary>
@@ -300,18 +373,19 @@ namespace Juice.Extensions.Logging.File
         /// <returns></returns>
         public virtual async Task StopAsync(CancellationToken cancellationToken)
         {
-            // Stop called without start
-            if (_backgroundTask == null || _backgroundTask.IsCompleted)
-            {
-                return;
-            }
-
             // Signal cancellation to the executing method
-            _shutdown.Cancel();
+            _shutdown?.Cancel();
 
-            // Wait until the task completes or the stop token triggers
-
-            await Task.WhenAny(_backgroundTask, Task.Delay(5000, cancellationToken));
+            var tasks = new List<Task>();
+            // Stop called without start
+            if (_backgroundTask != null && !_backgroundTask.IsCompleted)
+            {
+                tasks.Add(_backgroundTask);
+            }
+            if (tasks.Any())
+            {
+                await Task.WhenAny(Task.WhenAll(tasks), Task.Delay(5000, cancellationToken));
+            }
 
             // Throw if cancellation triggered
             cancellationToken.ThrowIfCancellationRequested();
@@ -323,22 +397,23 @@ namespace Juice.Extensions.Logging.File
         /// <returns></returns>
         protected async Task ExecuteAsync()
         {
-            while (!_shutdown.IsCancellationRequested)
+            while (!(_shutdown?.IsCancellationRequested) ?? false)
             {
-                await WriteFromQueueAsync();
                 try
                 {
-                    await Task.Delay(_bufferTime, _shutdown.Token);
+                    await FlushAsync();
+                    await Task.Delay(_bufferTime, _shutdown!.Token);
                 }
                 catch (TaskCanceledException) { }
             }
 
             try
             {
-                await WriteFromQueueAsync(true);
+                await FlushAsync();
             }
             catch (Exception) { }
         }
+
         #endregion
 
 
@@ -374,4 +449,5 @@ namespace Juice.Extensions.Logging.File
 
         #endregion
     }
+
 }
