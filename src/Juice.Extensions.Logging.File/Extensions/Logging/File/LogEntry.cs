@@ -17,8 +17,6 @@ namespace Juice.Extensions.Logging.File
         public string Message { get; init; }
         public string Category { get; init; }
         public LogLevel LogLevel { get; init; }
-        public string? FileName { get; protected set; }
-        public string? State { get; protected set; }
         public Exception? Exception { get; protected set; }
         public List<LogScope>? Scopes { get; protected set; }
         public void PushScope(LogScope scope)
@@ -29,15 +27,6 @@ namespace Juice.Extensions.Logging.File
             }
             Scopes.Add(scope);
         }
-        public void ForkNewFile(string name)
-        {
-            FileName = name;
-        }
-        public void SetState(string? state)
-        {
-            State = state;
-        }
-
         public List<string> GetScopes()
         {
             return Scopes?.Where(s => !string.IsNullOrEmpty(s.Scope))
