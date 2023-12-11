@@ -50,6 +50,16 @@
         log(`[${serviceId}] [${traceId}] [${state}] ${message}`, state == "Succeeded" ? "success" : null);
     });
 
+    connection.on("BeginScopeAsync", (serviceId, traceId, category, scope) => {
+        console.log(`[${serviceId}] [${traceId}] ${category} - Start scope`, scope);
+        log(`[${serviceId}] [${traceId}] Start scope ${(JSON.stringify(scope))}`, null);
+    });
+
+    connection.on("EndScopeAsync", (serviceId, traceId, category, scope) => {
+        console.log(`[${serviceId}] [${traceId}] ${category} - End scope`, scope);
+        log(`[${serviceId}] [${traceId}] End scope ${(JSON.stringify(scope))}`, null);
+    });
+
     function log(message, classes){
         var e = document.createElement("div");
         e.innerHTML = message;
