@@ -30,29 +30,32 @@
                         _logger.LogInformation("Test {state}", "Procssing");
                         for (var i = 0; i < 10; i++)
                         {
-                            if (i == 9)
+                            using (_logger.BeginScope("Task " + i))
                             {
-                                using (_logger.BeginScope(new Dictionary<string, object>
+                                if (i == 9)
                                 {
-                                    ["Contextual"] = "success"
-                                }))
-                                {
-                                    _logger.LogInformation("Test {state}", "last task");
+                                    using (_logger.BeginScope(new Dictionary<string, object>
+                                    {
+                                        ["Contextual"] = "success"
+                                    }))
+                                    {
+                                        _logger.LogInformation("Test {state}", "last task");
+                                    }
                                 }
-                            }
-                            else if (new Random().Next(8) == i)
-                            {
-                                using (_logger.BeginScope(new Dictionary<string, object>
+                                else if (new Random().Next(8) == i)
                                 {
-                                    ["Contextual"] = "danger"
-                                }))
-                                {
-                                    _logger.LogError("Test {state}", "failure task");
+                                    using (_logger.BeginScope(new Dictionary<string, object>
+                                    {
+                                        ["Contextual"] = "danger"
+                                    }))
+                                    {
+                                        _logger.LogError("Test {state}", "failure task");
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                _logger.LogInformation("Test task {i}", i);
+                                else
+                                {
+                                    _logger.LogInformation("Test task {i}", i);
+                                }
                             }
                             await Task.Delay(1000);
                         }

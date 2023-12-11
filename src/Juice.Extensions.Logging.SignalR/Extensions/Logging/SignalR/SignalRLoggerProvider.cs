@@ -21,8 +21,8 @@ namespace Juice.Extensions.Logging.SignalR
             string? traceId = default;
             string? contextual = default;
             string? state = default;
-            List<string> scopes = new List<string>();
-
+            List<object> scopes = new();
+            var excludeKeys = new List<string> { "ServiceId", "TraceId", "OperationState", "Contextual" };
             #region Collect log scopes
             scopeProvider?.ForEachScope((value, loggingProps) =>
             {
@@ -43,6 +43,11 @@ namespace Juice.Extensions.Logging.SignalR
                     if (props.Any(p => p.Key == "Contextual"))
                     {
                         contextual = props.First(p => p.Key == "Contextual").Value.ToString();
+                    }
+                    var excluded = props.Where(p => !excludeKeys.Contains(p.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                    if (excluded.Any())
+                    {
+                        scopes.Add(excluded);
                     }
                 }
                 else if (value is string s)
@@ -69,6 +74,72 @@ namespace Juice.Extensions.Logging.SignalR
                     logger.LoggingAsync(serviceId.Value, traceId, entry.Category, formattedMessage,
                         entry.LogLevel, contextual, scopes.ToArray()).Wait();
                 }
+            }
+        }
+
+        public override void ScopeStarted<TState>(string category, TState state, IExternalScopeProvider? scopeProvider)
+        {
+            object? serviceIdObj = null;
+            string? serviceDescription = null;
+            string? traceId = default;
+
+            #region Collect log scopes
+            scopeProvider?.ForEachScope((value, loggingProps) =>
+            {
+                if (value is IEnumerable<KeyValuePair<string, object>> props)
+                {
+                    if (props.Any(p => p.Key == "ServiceId"))
+                    {
+                        serviceIdObj = props.First(p => p.Key == "ServiceId").Value;
+                    }
+                    if (props.Any(p => p.Key == "ServiceDescription"))
+                    {
+                        serviceDescription = props.First(p => p.Key == "ServiceDescription").Value?.ToString();
+                    }
+                    if (props.Any(p => p.Key == "TraceId"))
+                    {
+                        traceId = props.First(p => p.Key == "TraceId").Value.ToString();
+                    }
+                }
+            }, state);
+
+            #endregion
+            if (serviceIdObj != null && Guid.TryParse(serviceIdObj.ToString(), out var serviceId))
+            {
+                GetLogger(serviceId).BeginScopeAsync(serviceId, traceId, category, state).Wait();
+            }
+        }
+
+        public override void ScopeDisposed<TState>(string category, TState state, IExternalScopeProvider? scopeProvider)
+        {
+            object? serviceIdObj = null;
+            string? serviceDescription = null;
+            string? traceId = default;
+
+            #region Collect log scopes
+            scopeProvider?.ForEachScope((value, loggingProps) =>
+            {
+                if (value is IEnumerable<KeyValuePair<string, object>> props)
+                {
+                    if (props.Any(p => p.Key == "ServiceId"))
+                    {
+                        serviceIdObj = props.First(p => p.Key == "ServiceId").Value;
+                    }
+                    if (props.Any(p => p.Key == "ServiceDescription"))
+                    {
+                        serviceDescription = props.First(p => p.Key == "ServiceDescription").Value?.ToString();
+                    }
+                    if (props.Any(p => p.Key == "TraceId"))
+                    {
+                        traceId = props.First(p => p.Key == "TraceId").Value.ToString();
+                    }
+                }
+            }, state);
+
+            #endregion
+            if (serviceIdObj != null && Guid.TryParse(serviceIdObj.ToString(), out var serviceId))
+            {
+                GetLogger(serviceId).EndScopeAsync(serviceId, traceId, category, state).Wait();
             }
         }
 

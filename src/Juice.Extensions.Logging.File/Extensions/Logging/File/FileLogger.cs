@@ -163,11 +163,11 @@ namespace Juice.Extensions.Logging.File
 
         private void WriteInteral(LogEntry log)
         {
-            var scopes = log.GetScopes();
-
             var time = log.Timestamp.ToLocalTime().ToString("HH:mm:ss.ff");
             var includeCategory = _includeCategories || (!_named && !_forked);
-            if ((scopes.Any() && _includeScopes) || !includeCategory)
+
+            // is inside a scope? or not include category?
+            if ((_scopes.Any() && _includeScopes) || !includeCategory)
             {
                 _sb.AppendFormat("{0} {1}: {2}", time, GetLevelShortName(log.LogLevel), log.Message);
                 _sb.AppendLine();

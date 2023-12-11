@@ -22,35 +22,30 @@ namespace Juice.Extensions.Logging.File
         {
             var log = new LogEntry(DateTimeOffset.Now, entry.Category, formattedMessage, entry.LogLevel, entry.Exception);
 
+            object? serviceIdObj = null;
+            string? serviceDescription = null;
             #region Collect log scopes
             scopeProvider?.ForEachScope((value, loggingProps) =>
             {
-                if (value is string)
+                if (value is IEnumerable<KeyValuePair<string, object>> props)
                 {
-                    log.PushScope(new LogScope { Scope = value.ToString() });
-                }
-                else if (value is IEnumerable<string> scopes)
-                {
-                    foreach (var scope in scopes)
+                    if (props.Any(p => p.Key == "ServiceId"))
                     {
-                        log.PushScope(new LogScope { Scope = scope });
+                        serviceIdObj = props.First(p => p.Key == "ServiceId").Value;
                     }
-                }
-                else if (value is IEnumerable<KeyValuePair<string, object>> props)
-                {
-                    log.PushScope(new LogScope { Properties = props.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) });
+                    if (props.Any(p => p.Key == "ServiceDescription"))
+                    {
+                        serviceDescription = props.First(p => p.Key == "ServiceDescription").Value?.ToString();
+                    }
                 }
             }, entry.State);
 
             #endregion
-
-            GetFileLogger(log).Write(log);
+            GetFileLogger(serviceIdObj, serviceDescription).Write(log);
         }
 
-        public override void ScopeStarted<TState>(TState state, IExternalScopeProvider? scopeProvider)
+        public override void ScopeStarted<TState>(string category, TState state, IExternalScopeProvider? scopeProvider)
         {
-            var log = new LogEntry(DateTimeOffset.Now, "", "", LogLevel.Information, default);
-
             object? serviceIdObj = null;
             string? serviceDescription = null;
             #region Collect log scopes
@@ -73,10 +68,8 @@ namespace Juice.Extensions.Logging.File
             GetFileLogger(serviceIdObj, serviceDescription).BeginScope(state);
         }
 
-        public override void ScopeDisposed<TState>(TState state, IExternalScopeProvider? scopeProvider)
+        public override void ScopeDisposed<TState>(string category, TState state, IExternalScopeProvider? scopeProvider)
         {
-            var log = new LogEntry(DateTimeOffset.Now, "", "", LogLevel.Information, default);
-
             object? serviceIdObj = null;
             string? serviceDescription = null;
             #region Collect log scopes
@@ -100,16 +93,6 @@ namespace Juice.Extensions.Logging.File
         }
 
         private Dictionary<Guid, FileLogger> _loggers = new Dictionary<Guid, FileLogger>();
-        private FileLogger GetFileLogger(LogEntry entry)
-        {
-            var scope = entry.Scopes?.LastOrDefault(s => s.Properties != null
-                && s.Properties.ContainsKey("ServiceId")
-                && s.Properties.ContainsKey("ServiceDescription"));
-
-            var serviceIdObj = scope?.Properties?["ServiceId"];
-
-            return GetFileLogger(serviceIdObj, scope?.Properties?["ServiceDescription"]?.ToString());
-        }
 
         private FileLogger GetFileLogger(object? serviceIdObj, string? serviceDescription)
         {

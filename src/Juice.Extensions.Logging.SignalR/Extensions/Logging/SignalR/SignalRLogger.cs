@@ -41,7 +41,7 @@ namespace Juice.Extensions.Logging.SignalR
                     ;
         }
 
-        public async Task LoggingAsync(Guid serviceId, string? traceId, string category, string message, LogLevel level, string? contextual, string[] scopes)
+        public async Task BeginScopeAsync<TState>(Guid serviceId, string? traceId, string category, TState scope)
         {
             if (_options.Disabled || _connection == null || _connection.State != HubConnectionState.Connected)
             {
@@ -49,7 +49,39 @@ namespace Juice.Extensions.Logging.SignalR
             }
             try
             {
-                var method = _options.LogMethod ?? "LoggingAsync";
+                await _connection.SendAsync(nameof(ILogClient.BeginScopeAsync), serviceId, traceId, category, scope);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SignalRLogger: {message}", ex.Message);
+            }
+        }
+
+        public async Task EndScopeAsync<TState>(Guid serviceId, string? traceId, string category, TState scope)
+        {
+            if (_options.Disabled || _connection == null || _connection.State != HubConnectionState.Connected)
+            {
+                return;
+            }
+            try
+            {
+                await _connection.SendAsync(nameof(ILogClient.EndScopeAsync), serviceId, traceId, category, scope);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SignalRLogger: {message}", ex.Message);
+            }
+        }
+
+        public async Task LoggingAsync(Guid serviceId, string? traceId, string category, string message, LogLevel level, string? contextual, object[] scopes)
+        {
+            if (_options.Disabled || _connection == null || _connection.State != HubConnectionState.Connected)
+            {
+                return;
+            }
+            try
+            {
+                var method = _options.LogMethod ?? nameof(ILogClient.LoggingAsync);
                 if (_options.IncludeScopes)
                 {
                     await _connection.SendAsync(method, serviceId, traceId, category, message, level, contextual, scopes);
@@ -73,7 +105,7 @@ namespace Juice.Extensions.Logging.SignalR
             }
             try
             {
-                var method = _options.StateMethod ?? "StateAsync";
+                var method = _options.StateMethod ?? nameof(ILogClient.StateAsync);
 
                 await _connection.SendAsync(method, serviceId, traceId, state, message);
             }
