@@ -8,7 +8,8 @@ namespace Juice.Extensions.Logging.SignalR
         public string? JoinGroupMethod { get; set; }
         public string? LogMethod { get; set; }
         public string? StateMethod { get; set; }
-        public bool IncludeScopes { get; set; } = true;
+        public new bool IncludeScopes { get; set; } = true;
+        public string[] ExcludedScopes { get; set; } = Array.Empty<string>();
         public bool Disabled { get; set; }
     }
 }

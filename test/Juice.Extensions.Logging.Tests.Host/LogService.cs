@@ -32,6 +32,10 @@
                         {
                             using (_logger.BeginScope("Task " + i))
                             {
+                                using (_logger.BeginScope("Excluded"))
+                                {
+                                    _logger.LogInformation("This log is inside excluded scope");
+                                }
                                 if (i == 9)
                                 {
                                     using (_logger.BeginScope(new Dictionary<string, object>
