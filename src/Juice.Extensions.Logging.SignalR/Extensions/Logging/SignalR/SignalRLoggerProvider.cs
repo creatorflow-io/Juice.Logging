@@ -9,23 +9,12 @@ namespace Juice.Extensions.Logging.SignalR
     {
         private IOptionsMonitor<SignalRLoggerOptions> _optionsMonitor;
         public SignalRLoggerOptions Options => _optionsMonitor.CurrentValue;
-        private string[] _excludedScopes = new string[0];
+        private IScopesFilter _scopesFilter;
 
-        public SignalRLoggerProvider(IOptionsMonitor<SignalRLoggerOptions> optionsMonitor)
+        public SignalRLoggerProvider(IOptionsMonitor<SignalRLoggerOptions> optionsMonitor, IScopesFilter scopesFilter)
         {
             _optionsMonitor = optionsMonitor;
-            _optionsMonitor.OnChange((options, _) =>
-            {
-                InitExcludedScopes(options.ExcludedScopes);
-            });
-            InitExcludedScopes(optionsMonitor.CurrentValue.ExcludedScopes);
-        }
-
-        private void InitExcludedScopes(string[] excludedScopes)
-        {
-            var scopes = new List<string>(excludedScopes);
-            scopes.AddRange(new string[] { "ServiceId", "TraceId", "OperationState", "Contextual" });
-            _excludedScopes = scopes.Distinct().ToArray();
+            _scopesFilter = scopesFilter;
         }
 
         public override void WriteLog<TState>(LogEntry<TState> entry, string formattedMessage, IExternalScopeProvider? scopeProvider)
@@ -57,19 +46,19 @@ namespace Juice.Extensions.Logging.SignalR
                     {
                         contextual = props.First(p => p.Key == "Contextual").Value.ToString();
                     }
-                    var excluded = props.Where(p => !_excludedScopes.Contains(p.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                    var excluded = props.Where(p => _scopesFilter.IsIncluded(p.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                     if (excluded.Any())
                     {
                         scopes.Add(excluded);
                     }
                 }
-                else if (value is string s && !_excludedScopes.Contains(s))
+                else if (value is string s && _scopesFilter.IsIncluded(s))
                 {
                     scopes.Add(s);
                 }
                 else if (value is IEnumerable<string> eScopes)
                 {
-                    var excluded = eScopes.Where(s => !_excludedScopes.Contains(s));
+                    var excluded = eScopes.Where(s => _scopesFilter.IsIncluded(s));
                     if (excluded.Any())
                     {
                         scopes.AddRange(excluded);
