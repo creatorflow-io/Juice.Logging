@@ -21,7 +21,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
         }
 
-        [IgnoreOnCIFact(DisplayName = "Log file should by JobId"), TestPriority(999)]
+        [IgnoreOnCIFact(DisplayName = "Log file should by TraceId"), TestPriority(999)]
         public async Task LogFile_should_by_jobIdAsync()
         {
             var resolver = new DependencyResolver
@@ -103,12 +103,12 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 }
                 logger.LogInformation("Trace1 #1 Test 3 {state}", "End");
             }
-
             await Task.Delay(logTime);
             var logFile3 = Path.Combine(logPath!, "General", $"{guid} - xUnit_Succeeded.log");
             _output.WriteLine(logFile3);
             FileAPI.Exists(logFile3).Should().BeTrue();
             FileAPI.Exists(logFile).Should().BeFalse();
+            logger.LogInformation("Log outside operation Trace1 #1 Test 3");
 
             using (logger.BeginScope(new Dictionary<string, object>
             {
@@ -120,16 +120,16 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 logger.LogInformation("Trace1 #2 Test 4 {state}", "Rerun");
                 logger.LogInformation("Trace1 #2 Test 4 {state}", "End");
             }
-
             await Task.Delay(logTime);
             var logFile4 = Path.Combine(logPath!, "General", $"{guid} - xUnit_Succeeded (1).log");
             _output.WriteLine(logFile4);
             FileAPI.Exists(logFile4).Should().BeTrue();
             FileAPI.Exists(logFile3).Should().BeTrue();
+            logger.LogInformation("Log outside operation Trace1 #2 Test 4");
 
         }
 
-        [IgnoreOnCIFact(DisplayName = "Log file by JobState inside JobId scope"), TestPriority(999)]
+        [IgnoreOnCIFact(DisplayName = "Log file by OperationState inside TraceId scope"), TestPriority(999)]
 
         public async Task LogFile_should_rename_by_jobStateAsync()
         {
@@ -178,7 +178,6 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                     logger.LogInformation("Test {state}", "End");
                 }
             }
-
             await Task.Delay(logTime);
             var logFile = Path.Combine(logPath!, "General", $"{guid} - xUnit.log");
             _output.WriteLine(logFile);
@@ -187,8 +186,65 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             var logFile2 = Path.Combine(logPath!, "General", $"{guid} - xUnit_Succeeded.log");
             _output.WriteLine(logFile2);
             FileAPI.Exists(logFile2).Should().BeTrue();
-
+            logger.LogInformation("Log outside operation");
+            await Task.Delay(logTime);
         }
+
+        [IgnoreOnCIFact(DisplayName = "Log file by TraceId scope"), TestPriority(999)]
+
+        public async Task LogFile_should_rename_by_jobAsync()
+        {
+            var resolver = new DependencyResolver
+            {
+                CurrentDirectory = AppContext.BaseDirectory
+            };
+
+            var logOptions = new FileLoggerOptions();
+            resolver.ConfigureServices(services =>
+            {
+                var configService = services.BuildServiceProvider().GetRequiredService<IConfigurationService>();
+                var configuration = configService.GetConfiguration();
+                services.AddSingleton(provider => _output);
+                services.AddLogging(builder =>
+                {
+                    builder.ClearProviders()
+                    .AddTestOutputLogger()
+                    .AddFileLogger(configuration.GetSection("Logging:File"))
+                    .AddConfiguration(configuration.GetSection("Logging"));
+                });
+                configuration.GetSection("Logging:File").Bind(logOptions);
+            });
+            var logPath = logOptions.Directory;
+            var logTime = logOptions.BufferTime.Add(TimeSpan.FromMilliseconds(200));
+            logPath.Should().NotBeNullOrEmpty();
+
+            var serviceProvider = resolver.ServiceProvider;
+            var logger = serviceProvider.GetRequiredService<ILogger<LoggingTests>>();
+
+            var guid = Guid.NewGuid().ToString();
+            using (logger.BeginScope(new Dictionary<string, object>
+            {
+                ["TraceId"] = guid,
+                ["Operation"] = "xUnit",
+            }))
+            {
+                logger.LogInformation("Test {state}", "Start");
+                logger.LogInformation("Test {state}", "Procssing");
+                logger.LogInformation("Test {state}", "End without OperationState scope");
+
+            }
+            await Task.Delay(logTime);
+            var logFile = Path.Combine(logPath!, "General", $"{guid} - xUnit.log");
+            _output.WriteLine(logFile);
+            FileAPI.Exists(logFile).Should().BeTrue();
+
+            var logFile2 = Path.Combine(logPath!, "General", $"{guid} - xUnit_Succeeded.log");
+            _output.WriteLine(logFile2);
+            FileAPI.Exists(logFile2).Should().BeFalse();
+            logger.LogInformation("Log outside operation");
+            await Task.Delay(logTime);
+        }
+
 
         [IgnoreOnCIFact(DisplayName = "Log should multiple scopes"), TestPriority(999)]
 
