@@ -107,17 +107,19 @@ namespace Juice.Extensions.Logging.File
             if (_forked && !string.IsNullOrEmpty(_originFilePath))
             {
                 _forked = false;
+                var origin = _filePath;
 
                 if (!string.IsNullOrEmpty(state))
                 {
-                    RenameFile(_filePath, state);
+                    origin = RenameFile(_filePath, state);
                 }
                 _filePath = _originFilePath;
                 _originFilePath = default;
+                WriteLineAsync("Restore from " + Path.GetFileName(origin) + "\n").Wait();
             }
         }
 
-        private void RenameFile(string filePath, string state)
+        private string RenameFile(string filePath, string state)
         {
             if (FileAPI.Exists(filePath))
             {
@@ -129,7 +131,9 @@ namespace Juice.Extensions.Logging.File
                 }
 
                 FileAPI.Move(filePath, newFile);
+                return newFile;
             }
+            return filePath;
         }
 
         /// <summary>
@@ -271,10 +275,11 @@ namespace Juice.Extensions.Logging.File
                 await FlushAsync();
             }
             else if (_forked && state is IEnumerable<KeyValuePair<string, object>> kvps
-                && kvps.Any(kvp => kvp.Key == "OperationState"))
+                && kvps.Any(kvp => kvp.Key == "OperationState"
+                    || kvp.Key == "TraceId"))
             {
                 await FlushAsync();
-                RestoreOriginFile(kvps.First(kvp => kvp.Key == "OperationState").Value.ToString());
+                RestoreOriginFile(kvps.FirstOrDefault(kvp => kvp.Key == "OperationState").Value?.ToString());
             }
         }
 
