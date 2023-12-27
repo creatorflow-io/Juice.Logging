@@ -112,6 +112,7 @@ namespace Juice.Extensions.Logging.File
                 if (!string.IsNullOrEmpty(state))
                 {
                     origin = RenameFile(_filePath, state);
+                    WriteLineAsync("Rename from " + _filePath + " to " + origin + "\n").Wait();
                 }
                 _filePath = _originFilePath;
                 _originFilePath = default;
@@ -143,18 +144,22 @@ namespace Juice.Extensions.Logging.File
         private async Task WriteLineAsync(string message)
         {
             // check the file size after any 100 writes
-            _counter++;
-            if (_counter % 100 == 0)
+            try
             {
-                if (new FileInfo(_filePath).Length > _maxFileSize)
+                _counter++;
+                if (_counter % 100 == 0)
                 {
-                    BeginFile(default);
+                    if (new FileInfo(_filePath).Length > _maxFileSize)
+                    {
+                        BeginFile(default);
+                    }
+                }
+                if (!string.IsNullOrEmpty(message))
+                {
+                    await FileAPI.AppendAllTextAsync(_filePath, message);
                 }
             }
-            if (!string.IsNullOrEmpty(message))
-            {
-                await FileAPI.AppendAllTextAsync(_filePath, message);
-            }
+            catch (Exception) { }
         }
 
         private async Task FlushAsync()
@@ -204,11 +209,19 @@ namespace Juice.Extensions.Logging.File
 
         public void BeginScope<TState>(TState state)
         {
-            BeginScopeInternalAsync(state).Wait();
+            try
+            {
+                BeginScopeInternalAsync(state).Wait();
+            }
+            catch (Exception) { }
         }
         public void EndScope<TState>(TState state)
         {
-            EndScopeInternalAsync(state).Wait();
+            try
+            {
+                EndScopeInternalAsync(state).Wait();
+            }
+            catch (Exception) { }
         }
         private async Task BeginScopeInternalAsync<TState>(TState state)
         {
@@ -234,6 +247,7 @@ namespace Juice.Extensions.Logging.File
             }
             else if (state is IEnumerable<KeyValuePair<string, object>> kvps)
             {
+                var objScopes = kvps.ToList();
                 if (_fork && kvps.Any(kvp => kvp.Key == "TraceId"))
                 {
                     var traceId = kvps.Single(kvp => kvp.Key == "TraceId").Value?.ToString();
@@ -243,6 +257,15 @@ namespace Juice.Extensions.Logging.File
                         await FlushAsync();
                         ForkNewFile(FileLoggerProvider.GetForkedFileName(traceId, operation));
                     }
+                    objScopes.RemoveAll(s => s.Key == "TraceId" || s.Key == "Operation");
+                }
+                else
+                {
+                    var newScopes = new List<string>(_scopes);
+                    newScopes.AddRange(objScopes.Select(s => $"{s.Key}: {s.Value}"));
+                    BeginScopes(_sb, _scopes, newScopes);
+                    _scopes = newScopes;
+
                 }
             }
         }
@@ -274,12 +297,35 @@ namespace Juice.Extensions.Logging.File
                 _scopes = newScopes;
                 await FlushAsync();
             }
-            else if (_forked && state is IEnumerable<KeyValuePair<string, object>> kvps
-                && kvps.Any(kvp => kvp.Key == "OperationState"
-                    || kvp.Key == "TraceId"))
+            else if (state is IEnumerable<KeyValuePair<string, object>> kvps)
             {
-                await FlushAsync();
-                RestoreOriginFile(kvps.FirstOrDefault(kvp => kvp.Key == "OperationState").Value?.ToString());
+                var objScopes = kvps.ToList();
+                if (_forked)
+                {
+                    objScopes.RemoveAll(s => s.Key == "OperationState" || s.Key == "TraceId" || s.Key == "Operation");
+                }
+                if (objScopes.Any())
+                {
+                    var newScopes = new List<string>(_scopes);
+                    foreach (var s in objScopes.Select(s => $"{s.Key}: {s.Value}"))
+                    {
+                        var i = newScopes.LastIndexOf(s);
+                        if (i >= 0)
+                        {
+                            newScopes = newScopes.Take(i).ToList();
+                        }
+                    }
+                    EndScopes(_sb, _scopes, newScopes);
+                    _scopes = newScopes;
+                    await FlushAsync();
+                }
+                if (_forked & kvps.Any(kvp => kvp.Key == "OperationState"
+                    || kvp.Key == "TraceId"))
+                {
+                    await FlushAsync();
+                    RestoreOriginFile(kvps.FirstOrDefault(kvp => kvp.Key == "OperationState").Value?.ToString());
+
+                }
             }
         }
 
@@ -297,17 +343,6 @@ namespace Juice.Extensions.Logging.File
                     }
                     break;
                 }
-                if (scopes[i] != newScopes[i])
-                {
-                    sb.AppendLine();
-                    for (var j = scopes.Count - 1; j >= i; j--)
-                    {
-                        sb.AppendFormat("{0}   End: {1}", new string('-', (j + 1) * 4), scopes[j]);
-                        sb.AppendLine();
-                    }
-                    sb.AppendLine();
-                    return;
-                }
             }
         }
 
@@ -315,19 +350,6 @@ namespace Juice.Extensions.Logging.File
         {
             if (_includeScopes)
             {
-                for (var i = 0; i < scopes.Count; i++)
-                {
-                    if (scopes[i] != newScopes[i])
-                    {
-                        for (var j = i; j < newScopes.Count; j++)
-                        {
-                            sb.AppendFormat("{0} Begin: {1}", new string('-', (j + 1) * 4), newScopes[j]);
-                            sb.AppendLine();
-                        }
-                        sb.AppendLine();
-                        return;
-                    }
-                }
                 if (newScopes.Count > scopes.Count)
                 {
                     for (var j = scopes.Count; j < newScopes.Count; j++)
