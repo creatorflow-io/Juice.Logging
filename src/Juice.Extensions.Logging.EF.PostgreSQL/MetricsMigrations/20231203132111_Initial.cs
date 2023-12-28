@@ -8,7 +8,7 @@ namespace Juice.Extensions.Logging.EF.PostgreSQL.MetricsMigrations
     /// <inheritdoc />
     public partial class Initial : Migration
     {
-        private readonly string _schema = "App";
+        private string _schema = "App";
 
         public Initial()
         {

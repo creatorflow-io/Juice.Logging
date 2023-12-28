@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Juice.Extensions.Logging.EF.DependencyInjection
 {
@@ -32,7 +33,7 @@ namespace Juice.Extensions.Logging.EF.DependencyInjection
                     _ => throw new NotSupportedException($"Unsupported provider: {provider}")
                 };
 
-            services.AddPooledDbContextFactory<LogDbContext>((serviceProvider, options) =>
+            services.AddDbContext<LogDbContext>(options =>
             {
                 switch (provider)
                 {
@@ -62,10 +63,8 @@ namespace Juice.Extensions.Logging.EF.DependencyInjection
                 options
                     .ReplaceService<IMigrationsAssembly, DbSchemaAwareMigrationAssembly>()
                 ;
+                options.UseLoggerFactory(LoggerFactory.Create(builder => { builder.ClearProviders(); }));
             });
-
-            services.AddScoped<LogDbContextScopedFactory>();
-            services.AddScoped(sp => sp.GetRequiredService<LogDbContextScopedFactory>().CreateDbContext());
 
             return services;
         }
@@ -122,6 +121,8 @@ namespace Juice.Extensions.Logging.EF.DependencyInjection
                 options
                     .ReplaceService<IMigrationsAssembly, DbSchemaAwareMigrationAssembly>()
                 ;
+
+                options.UseLoggerFactory(LoggerFactory.Create(builder => { builder.ClearProviders(); }));
             });
 
             return services;

@@ -10,7 +10,7 @@ namespace Juice.Extensions.Logging
 {
     public static class EFLoggerBuilderExtensions
     {
-        public static ILoggingBuilder AddDbLogger(this ILoggingBuilder builder, IConfigurationSection configuration, IConfigurationRoot configurationRoot)
+        public static ILoggingBuilder AddDbLogger(this ILoggingBuilder builder, IConfigurationSection configuration, IConfiguration configurationRoot)
         {
             builder.Services.AddLogDbContext(configurationRoot, options =>
             {
@@ -31,7 +31,7 @@ namespace Juice.Extensions.Logging
         }
 
         public static ILoggingBuilder AddDbLogger(this ILoggingBuilder builder, Action<EFLoggerOptions> configure,
-            Action<DbOptions> dbConfigure, IConfigurationRoot configurationRoot)
+            Action<DbOptions> dbConfigure, IConfiguration configurationRoot)
         {
             builder.Services.AddLogDbContext(configurationRoot, dbConfigure);
 

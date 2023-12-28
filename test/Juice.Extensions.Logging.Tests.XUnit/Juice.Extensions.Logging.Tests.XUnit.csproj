@@ -9,6 +9,18 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="appsettings.Development.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="appsettings.Development.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -22,6 +34,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\src\Juice.Extensions.Logging.EF.PostgreSQL\Juice.Extensions.Logging.EF.PostgreSQL.csproj" />
+        <ProjectReference Include="..\..\src\Juice.Extensions.Logging.EF.SqlServer\Juice.Extensions.Logging.EF.SqlServer.csproj" />
         <ProjectReference Include="..\..\src\Juice.Extensions.Logging.EF\Juice.Extensions.Logging.EF.csproj" />
         <ProjectReference Include="..\..\src\Juice.Extensions.Logging.File\Juice.Extensions.Logging.File.csproj" />
     </ItemGroup>
@@ -32,6 +46,7 @@
 
     <ItemGroup Label="refs">
         <PackageReference Include="Juice" Version="$(JuiceRefVersion)" />
+        <PackageReference Include="Juice.MultiTenant" Version="$(JuiceRefVersion)" />
         <PackageReference Include="Juice.XUnit" Version="$(JuiceRefVersion)" />
     </ItemGroup>
 

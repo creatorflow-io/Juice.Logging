@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
@@ -92,7 +93,7 @@ namespace Juice.Extensions.Logging.File
             GetFileLogger(serviceIdObj, serviceDescription).EndScope(state);
         }
 
-        private Dictionary<Guid, FileLogger> _loggers = new Dictionary<Guid, FileLogger>();
+        private ConcurrentDictionary<Guid, FileLogger> _loggers = new ConcurrentDictionary<Guid, FileLogger>();
 
         private FileLogger GetFileLogger(object? serviceIdObj, string? serviceDescription)
         {
@@ -101,14 +102,14 @@ namespace Juice.Extensions.Logging.File
                    (Guid)serviceIdObj
                    : Guid.TryParse(serviceIdObj.ToString(), out var id) ? id : Guid.Empty)
                    : Guid.Empty;
-            if (!_loggers.ContainsKey(serviceId))
-            {
-                _loggers.Add(serviceId, new FileLogger(Path.Combine(Options.Directory!, serviceDescription ?? Options.GeneralName ?? "General"),
-                    Options, !string.IsNullOrEmpty(serviceDescription)));
-                _loggers[serviceId].StartAsync().Wait();
-            }
 
-            return _loggers[serviceId];
+            return _loggers.GetOrAdd(serviceId, (id) =>
+            {
+                var logger = new FileLogger(Path.Combine(Options.Directory!, serviceDescription ?? Options.GeneralName ?? "General"),
+                                       Options, !string.IsNullOrEmpty(serviceDescription));
+                logger.StartAsync().Wait();
+                return logger;
+            });
         }
 
         public static string GetForkedFileName(string traceId, string? operation)
