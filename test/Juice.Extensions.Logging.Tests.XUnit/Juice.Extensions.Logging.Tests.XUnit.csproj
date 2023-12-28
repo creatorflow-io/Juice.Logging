@@ -50,10 +50,4 @@
         <PackageReference Include="Juice.XUnit" Version="$(JuiceRefVersion)" />
     </ItemGroup>
 
-    <ItemGroup>
-      <None Update="appsettings.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-
 </Project>
