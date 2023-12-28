@@ -112,7 +112,6 @@ namespace Juice.Extensions.Logging.File
                 if (!string.IsNullOrEmpty(state))
                 {
                     origin = RenameFile(_filePath, state);
-                    WriteLineAsync("Rename from " + _filePath + " to " + origin + "\n").Wait();
                 }
                 _filePath = _originFilePath;
                 _originFilePath = default;
