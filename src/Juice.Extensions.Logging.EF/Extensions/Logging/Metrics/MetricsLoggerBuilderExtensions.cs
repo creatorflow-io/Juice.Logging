@@ -10,7 +10,7 @@ namespace Juice.Extensions.Logging
 {
     public static class MetricsLoggerBuilderExtensions
     {
-        public static ILoggingBuilder AddMetricsLogger(this ILoggingBuilder builder, IConfigurationSection configuration, IConfigurationRoot configurationRoot)
+        public static ILoggingBuilder AddMetricsLogger(this ILoggingBuilder builder, IConfigurationSection configuration, IConfiguration configurationRoot)
         {
             builder.Services.AddLogMetricsDbContext(configurationRoot, options =>
             {
@@ -31,7 +31,7 @@ namespace Juice.Extensions.Logging
         }
 
         public static ILoggingBuilder AddMetricsLogger(this ILoggingBuilder builder, Action<MetricsLoggerOptions> configure,
-            Action<DbOptions> dbConfigure, IConfigurationRoot configurationRoot)
+            Action<DbOptions> dbConfigure, IConfiguration configurationRoot)
         {
             builder.Services.AddLogMetricsDbContext(configurationRoot, dbConfigure);
 

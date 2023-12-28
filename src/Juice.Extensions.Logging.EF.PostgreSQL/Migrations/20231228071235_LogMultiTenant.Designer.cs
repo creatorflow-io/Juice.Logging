@@ -3,6 +3,7 @@ using System;
 using Juice.Extensions.Logging.EF.LogEntries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Juice.Extensions.Logging.EF.PostgreSQL.Migrations
 {
     [DbContext(typeof(LogDbContext))]
-    partial class LogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231228071235_LogMultiTenant")]
+    partial class LogMultiTenant
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

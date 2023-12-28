@@ -24,4 +24,8 @@
         <ProjectReference Include="..\..\src\Juice.Extensions.Logging.SignalR\Juice.Extensions.Logging.SignalR.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <PackageReference Include="Juice.MultiTenant.EF.SqlServer" Version="$(JuiceRefVersion)"/>
+        <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="6.*" />
+    </ItemGroup>
 </Project>

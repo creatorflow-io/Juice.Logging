@@ -22,7 +22,7 @@ namespace Juice.Extensions.Logging.EF.SqlServer.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Juice.Extensions.Logging.EF.LogEntry", b =>
+            modelBuilder.Entity("Juice.Extensions.Logging.EF.LogEntries.LogEntry", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -48,8 +48,13 @@ namespace Juice.Extensions.Logging.EF.SqlServer.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<Guid>("ServiceId")
+                    b.Property<Guid?>("ServiceId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("datetimeoffset");
@@ -67,7 +72,9 @@ namespace Juice.Extensions.Logging.EF.SqlServer.Migrations
 
                     b.HasIndex("Level", "Timestamp", "Operation");
 
-                    b.ToTable("Logs", (string)null);
+                    b.ToTable("Logs", "App");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 #pragma warning restore 612, 618
         }

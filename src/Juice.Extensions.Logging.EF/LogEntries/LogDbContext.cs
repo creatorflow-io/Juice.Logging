@@ -1,4 +1,6 @@
-﻿using Juice.EF;
+﻿using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.EntityFrameworkCore;
+using Juice.EF;
 using Juice.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -8,18 +10,26 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Juice.Extensions.Logging.EF.LogEntries
 {
-    public class LogDbContext : DbContext, ISchemaDbContext
+    public class LogDbContext : DbContext, ISchemaDbContext, IMultiTenantDbContext
     {
-        public string? Schema { get; private set; }
-        public LogDbContext(DbContextOptions<LogDbContext> options) : base(options)
-        {
+        #region Finbuckle
+        public ITenantInfo? TenantInfo { get; internal set; }
+        public virtual TenantMismatchMode TenantMismatchMode { get; set; } = TenantMismatchMode.Throw;
 
+        public virtual TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
+        #endregion
+        public string? Schema { get; private set; }
+        public LogDbContext(IServiceProvider serviceProvider,
+            DbContextOptions<LogDbContext> options) : base(options)
+        {
+            ConfigureServices(serviceProvider);
         }
 
         public void ConfigureServices(IServiceProvider serviceProvider)
         {
             var dbOptions = serviceProvider.GetService<DbOptions<LogDbContext>>();
             Schema = dbOptions?.Schema;
+            TenantInfo = serviceProvider.GetService<ITenantInfo>() ?? new TenantInfo { Id = "" };
         }
 
         public DbSet<LogEntry> Logs { get; set; }
@@ -34,15 +44,27 @@ namespace Juice.Extensions.Logging.EF.LogEntries
             builder.ToTable("Logs", Schema);
             builder.HasKey(x => x.Id);
             builder.Property(x => x.Id).ValueGeneratedOnAdd();
-            builder.Property(x => x.ServiceId).IsRequired();
+            builder.Property(x => x.ServiceId);
             builder.Property(x => x.Operation).HasMaxLength(LengthConstants.NameLength);
             builder.Property(x => x.TraceId).HasMaxLength(LengthConstants.IdentityLength);
             builder.Property(x => x.Category).HasMaxLength(LengthConstants.NameLength);
             builder.Property(x => x.Message).HasMaxLength(LengthConstants.ShortDescriptionLength);
 
+            builder.IsMultiTenant();
+
             builder.HasIndex(x => x.TraceId);
             builder.HasIndex(x => x.ServiceId);
             builder.HasIndex(x => new { x.Level, x.Timestamp, x.Operation });
+        }
+
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            return base.SaveChanges(acceptAllChangesOnSuccess);
         }
     }
 

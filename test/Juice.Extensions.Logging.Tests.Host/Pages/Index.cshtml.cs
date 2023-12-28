@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Juice.Extensions.Logging.Tests.Host.Pages
 {
@@ -14,6 +13,7 @@ namespace Juice.Extensions.Logging.Tests.Host.Pages
 
         public void OnGet()
         {
+            _logger.LogInformation("Get Index page");
 
         }
     }
