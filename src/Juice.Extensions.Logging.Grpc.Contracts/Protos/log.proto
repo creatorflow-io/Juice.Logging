@@ -1,0 +1,28 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+package juice.extensions.logging.grpc;
+
+message GrpcLogEntry {
+  string message = 1;
+  int32 level = 2;
+  string category = 3;
+  google.protobuf.Timestamp timestamp = 4;
+  google.protobuf.StringValue exception = 5;
+  google.protobuf.StringValue serviceId = 6;
+  string traceId = 7;
+  google.protobuf.StringValue operation = 8;
+  google.protobuf.StringValue tenantId = 9;
+}
+
+message LogEntries {
+  repeated GrpcLogEntry entries = 1;
+}
+
+
+service LogWriter {
+  rpc Log(LogEntries) returns (google.protobuf.Empty);
+}

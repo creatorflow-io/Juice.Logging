@@ -14,9 +14,6 @@
     
     <ItemGroup>
         <PackageReference Include="Juice.EF.MultiTenant" Version="$(JuiceRefVersion)" />
-        <PackageReference Include="Juice.Extensions.Logging" Version="$(JuiceRefVersion)" />
-        <PackageReference Include="Juice.Extensions.Options" Version="$(JuiceRefVersion)" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsVersion)" />
     </ItemGroup>
 
     
