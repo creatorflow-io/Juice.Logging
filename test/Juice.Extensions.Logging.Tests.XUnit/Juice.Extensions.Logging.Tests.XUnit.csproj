@@ -25,6 +25,7 @@
         <ProjectReference Include="..\..\src\Juice.Extensions.Logging.EF.SqlServer\Juice.Extensions.Logging.EF.SqlServer.csproj" />
         <ProjectReference Include="..\..\src\Juice.Extensions.Logging.EF\Juice.Extensions.Logging.EF.csproj" />
         <ProjectReference Include="..\..\src\Juice.Extensions.Logging.File\Juice.Extensions.Logging.File.csproj" />
+        <ProjectReference Include="..\..\src\Juice.Extensions.Logging.Grpc\Juice.Extensions.Logging.Grpc.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -38,9 +39,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <!--<None Update="appsettings.Development.json">
+      <None Update="appsettings.Development.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>-->
+      </None>
       <None Update="appsettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>

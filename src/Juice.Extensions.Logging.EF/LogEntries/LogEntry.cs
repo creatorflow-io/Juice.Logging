@@ -4,7 +4,11 @@ namespace Juice.Extensions.Logging.EF.LogEntries
 {
     public class LogEntry
     {
-        public LogEntry(Guid? serviceId, string traceId, string? operation, string category, string message, LogLevel level, string? exception, string tenantId)
+        public LogEntry(Guid? serviceId, string traceId, string? operation, string category, string message, LogLevel level, string? exception, string tenantId) : this(serviceId, traceId, operation, category, message, level, exception, tenantId, DateTimeOffset.UtcNow)
+        {
+        }
+
+        public LogEntry(Guid? serviceId, string traceId, string? operation, string category, string message, LogLevel level, string? exception, string tenantId, DateTimeOffset timetamp)
         {
             Category = category;
             Message = message;
@@ -13,7 +17,7 @@ namespace Juice.Extensions.Logging.EF.LogEntries
             ServiceId = serviceId;
             TraceId = traceId;
             Operation = operation;
-            Timestamp = DateTimeOffset.UtcNow;
+            Timestamp = timetamp;
             TenantId = tenantId;
         }
 

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>$(AppTargetFramework)</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <None Remove="Protos\log.proto" />
+    </ItemGroup>
+    
+    <ItemGroup Label="gRPC">
+        <Protobuf Include="Protos\log.proto" />
+        <PackageReference Include="Google.Protobuf" Version="$(ProtobufVersion)" />
+        <PackageReference Include="Grpc.Tools" Version="$(GrpcVersion)" PrivateAssets="All" />
+        <PackageReference Include="Grpc.Core.Api" Version="$(GrpcVersion)" />
+    </ItemGroup>
+</Project>

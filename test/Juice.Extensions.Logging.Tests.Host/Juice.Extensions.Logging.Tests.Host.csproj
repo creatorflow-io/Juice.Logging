@@ -21,11 +21,12 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Juice.Extensions.Logging.EF.PostgreSQL\Juice.Extensions.Logging.EF.PostgreSQL.csproj" />
         <ProjectReference Include="..\..\src\Juice.Extensions.Logging.EF.SqlServer\Juice.Extensions.Logging.EF.SqlServer.csproj" />
+        <ProjectReference Include="..\..\src\Juice.Extensions.Logging.Grpc.Server\Juice.Extensions.Logging.Grpc.Server.csproj" />
         <ProjectReference Include="..\..\src\Juice.Extensions.Logging.SignalR\Juice.Extensions.Logging.SignalR.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Juice.MultiTenant.EF.SqlServer" Version="$(JuiceRefVersion)"/>
+        <PackageReference Include="Juice.MultiTenant.EF.SqlServer" Version="$(JuiceRefVersion)" />
         <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="6.*" />
     </ItemGroup>
 </Project>

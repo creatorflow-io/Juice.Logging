@@ -15,11 +15,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juice.Extensions.Logging.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juice.Extensions.Logging.Tests.Host", "test\Juice.Extensions.Logging.Tests.Host\Juice.Extensions.Logging.Tests.Host.csproj", "{FBC5240F-1CCE-4B94-A8AD-66EAF29D3E0B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Juice.Extensions.Logging.EF", "src\Juice.Extensions.Logging.EF\Juice.Extensions.Logging.EF.csproj", "{C4DB879A-5796-4D1E-B499-C3CFF77D8E5A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juice.Extensions.Logging.EF", "src\Juice.Extensions.Logging.EF\Juice.Extensions.Logging.EF.csproj", "{C4DB879A-5796-4D1E-B499-C3CFF77D8E5A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Juice.Extensions.Logging.EF.SqlServer", "src\Juice.Extensions.Logging.EF.SqlServer\Juice.Extensions.Logging.EF.SqlServer.csproj", "{B26149BD-FA35-4D92-B6FB-4AEAB7C4EF57}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juice.Extensions.Logging.EF.SqlServer", "src\Juice.Extensions.Logging.EF.SqlServer\Juice.Extensions.Logging.EF.SqlServer.csproj", "{B26149BD-FA35-4D92-B6FB-4AEAB7C4EF57}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Juice.Extensions.Logging.EF.PostgreSQL", "src\Juice.Extensions.Logging.EF.PostgreSQL\Juice.Extensions.Logging.EF.PostgreSQL.csproj", "{F061C0EC-A3E1-4407-9E6C-5F048D6F5086}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juice.Extensions.Logging.EF.PostgreSQL", "src\Juice.Extensions.Logging.EF.PostgreSQL\Juice.Extensions.Logging.EF.PostgreSQL.csproj", "{F061C0EC-A3E1-4407-9E6C-5F048D6F5086}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Juice.Extensions.Logging.Grpc.Contracts", "src\Juice.Extensions.Logging.Grpc.Contracts\Juice.Extensions.Logging.Grpc.Contracts.csproj", "{958E7D54-9A35-438D-A742-B269BF8D55B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Juice.Extensions.Logging.Grpc.Server", "src\Juice.Extensions.Logging.Grpc.Server\Juice.Extensions.Logging.Grpc.Server.csproj", "{F3FFB12B-EC41-4122-A9A6-CB4FFC0336A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Juice.Extensions.Logging.Grpc", "src\Juice.Extensions.Logging.Grpc\Juice.Extensions.Logging.Grpc.csproj", "{8A44620A-004D-474F-8960-5AD96C881A30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +61,18 @@ Global
 		{F061C0EC-A3E1-4407-9E6C-5F048D6F5086}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F061C0EC-A3E1-4407-9E6C-5F048D6F5086}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F061C0EC-A3E1-4407-9E6C-5F048D6F5086}.Release|Any CPU.Build.0 = Release|Any CPU
+		{958E7D54-9A35-438D-A742-B269BF8D55B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{958E7D54-9A35-438D-A742-B269BF8D55B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{958E7D54-9A35-438D-A742-B269BF8D55B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{958E7D54-9A35-438D-A742-B269BF8D55B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3FFB12B-EC41-4122-A9A6-CB4FFC0336A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3FFB12B-EC41-4122-A9A6-CB4FFC0336A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3FFB12B-EC41-4122-A9A6-CB4FFC0336A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3FFB12B-EC41-4122-A9A6-CB4FFC0336A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A44620A-004D-474F-8960-5AD96C881A30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A44620A-004D-474F-8960-5AD96C881A30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A44620A-004D-474F-8960-5AD96C881A30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A44620A-004D-474F-8960-5AD96C881A30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,6 +85,9 @@ Global
 		{C4DB879A-5796-4D1E-B499-C3CFF77D8E5A} = {EBCB8A7B-FD2C-48F4-9E6A-2E6B64B5953D}
 		{B26149BD-FA35-4D92-B6FB-4AEAB7C4EF57} = {EBCB8A7B-FD2C-48F4-9E6A-2E6B64B5953D}
 		{F061C0EC-A3E1-4407-9E6C-5F048D6F5086} = {EBCB8A7B-FD2C-48F4-9E6A-2E6B64B5953D}
+		{958E7D54-9A35-438D-A742-B269BF8D55B9} = {EBCB8A7B-FD2C-48F4-9E6A-2E6B64B5953D}
+		{F3FFB12B-EC41-4122-A9A6-CB4FFC0336A7} = {EBCB8A7B-FD2C-48F4-9E6A-2E6B64B5953D}
+		{8A44620A-004D-474F-8960-5AD96C881A30} = {EBCB8A7B-FD2C-48F4-9E6A-2E6B64B5953D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {717415C1-FB2B-4B17-B093-2D67BA38188A}

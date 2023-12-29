@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
+builder.Services.AddGrpc();
 builder.Services.AddHttpContextAccessor();
 
 //builder.Services.AddHostedService<LogService>();
@@ -41,6 +42,8 @@ app.MapRazorPages();
 
 app.MapHub<LogHub>("/loghub");
 
+app.MapGrpcLogServices();
+
 await app.MigrateLogDbAsync();
 
 await app.MigrateLogMetricsDbAsync();
@@ -52,7 +55,15 @@ static void ConfigureMultiTenant(WebApplicationBuilder builder)
 {
     var tenantAuthority = builder.Configuration.GetSection("OpenIdConnect:TenantAuthority").Value;
     builder.Services
-    .AddMultiTenant()
+    .AddMultiTenant(options =>
+    {
+        options.IgnoredIdentifiers.Add("css");
+        options.IgnoredIdentifiers.Add("js");
+        options.IgnoredIdentifiers.Add("lib");
+        options.IgnoredIdentifiers.Add("images");
+        options.IgnoredIdentifiers.Add("favicon.ico");
+        options.IgnoredIdentifiers.Add("loghub");
+    })
     .ConfigureTenantEFDirectly(builder.Configuration, options =>
     {
         options.DatabaseProvider = "PostgreSQL";

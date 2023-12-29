@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>$(AppTargetFramework)</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="Grpc.AspNetCore.Server" Version="$(GrpcVersion)" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\Juice.Extensions.Logging.EF\Juice.Extensions.Logging.EF.csproj" />
+      <ProjectReference Include="..\Juice.Extensions.Logging.Grpc.Contracts\Juice.Extensions.Logging.Grpc.Contracts.csproj" />
+    </ItemGroup>
+</Project>

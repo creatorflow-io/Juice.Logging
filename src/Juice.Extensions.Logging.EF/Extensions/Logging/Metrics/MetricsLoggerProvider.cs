@@ -49,38 +49,40 @@ namespace Juice.Extensions.Logging.Metrics
             }
         }
 
-
         public override void WriteLog<TState>(LogEntry<TState> entry, string formattedMessage, IExternalScopeProvider? scopeProvider)
         {
-            Guid? serviceId = default;
-            string? operation = default;
-
-            #region Collect log scopes
-            scopeProvider?.ForEachScope((value, loggingProps) =>
+            if (_backgroundTask != null && !_backgroundTask.IsCompleted)
             {
-                if (value is IEnumerable<KeyValuePair<string, object>> props)
+                Guid? serviceId = default;
+                string? operation = default;
+
+                #region Collect log scopes
+                scopeProvider?.ForEachScope((value, loggingProps) =>
                 {
-                    if (props.Any(p => p.Key == "ServiceId"))
+                    if (value is IEnumerable<KeyValuePair<string, object>> props)
                     {
-                        serviceId = Guid.Parse(props.First(p => p.Key == "ServiceId").Value.ToString()!);
+                        if (props.Any(p => p.Key == "ServiceId"))
+                        {
+                            serviceId = Guid.Parse(props.First(p => p.Key == "ServiceId").Value.ToString()!);
+                        }
+                        if (props.Any(p => p.Key == "Operation"))
+                        {
+                            operation = props.First(p => p.Key == "Operation").Value.ToString();
+                        }
                     }
-                    if (props.Any(p => p.Key == "Operation"))
-                    {
-                        operation = props.First(p => p.Key == "Operation").Value.ToString();
-                    }
-                }
-            }, entry.State);
-            #endregion
+                }, entry.State);
+                #endregion
 
-            if (serviceId.HasValue)
-            {
-                _services.AddOrUpdate(serviceId.Value, new LogMetric(entry.LogLevel), (key, value) => value.Track(entry.LogLevel));
+                if (serviceId.HasValue)
+                {
+                    _services.AddOrUpdate(serviceId.Value, new LogMetric(entry.LogLevel), (key, value) => value.Track(entry.LogLevel));
+                }
+                if (!string.IsNullOrEmpty(operation))
+                {
+                    _operations.AddOrUpdate(operation, new LogMetric(entry.LogLevel), (key, value) => value.Track(entry.LogLevel));
+                }
+                _categories.AddOrUpdate(entry.Category, new LogMetric(entry.LogLevel), (key, value) => value.Track(entry.LogLevel));
             }
-            if (!string.IsNullOrEmpty(operation))
-            {
-                _operations.AddOrUpdate(operation, new LogMetric(entry.LogLevel), (key, value) => value.Track(entry.LogLevel));
-            }
-            _categories.AddOrUpdate(entry.Category, new LogMetric(entry.LogLevel), (key, value) => value.Track(entry.LogLevel));
         }
 
 

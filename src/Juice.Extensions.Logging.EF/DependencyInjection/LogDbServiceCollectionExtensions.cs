@@ -69,6 +69,51 @@ namespace Juice.Extensions.Logging.EF.DependencyInjection
             return services;
         }
 
+        public static IServiceCollection AddLogAdminDbContext(this IServiceCollection services, IConfiguration configuration,
+            Action<DbOptions>? configureOptions = default)
+        {
+            services.AddScoped(p =>
+            {
+                var options = new DbOptions<LogAdminDbContext> { DatabaseProvider = "SqlServer" };
+                configureOptions?.Invoke(options);
+                return options;
+            });
+
+            var dbOptions = services.BuildServiceProvider().GetRequiredService<DbOptions<LogAdminDbContext>>();
+            var provider = dbOptions.DatabaseProvider;
+            var schema = dbOptions.Schema;
+            var connectionName = dbOptions.ConnectionName ??
+                provider switch
+                {
+                    "PostgreSQL" => "PostgreConnection",
+                    "SqlServer" => "SqlServerConnection",
+                    _ => throw new NotSupportedException($"Unsupported provider: {provider}")
+                };
+
+            services.AddPooledDbContextFactory<LogAdminDbContext>((serviceProvider, options) =>
+            {
+                switch (provider)
+                {
+                    case "PostgreSQL":
+                        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+                        options.UseNpgsql(
+                           configuration.GetConnectionString(connectionName));
+                        break;
+
+                    case "SqlServer":
+                        options.UseSqlServer(
+                            configuration.GetConnectionString(connectionName));
+                        break;
+                    default:
+                        throw new NotSupportedException($"Unsupported provider: {provider}");
+                }
+
+                options.UseLoggerFactory(LoggerFactory.Create(builder => { builder.ClearProviders(); }));
+            });
+            services.AddScoped<LogAdminDbContextScopedFactory>();
+            services.AddScoped(sp => sp.GetRequiredService<LogAdminDbContextScopedFactory>().CreateDbContext());
+            return services;
+        }
 
         public static IServiceCollection AddLogMetricsDbContext(this IServiceCollection services, IConfiguration configuration,
             Action<DbOptions>? configureOptions = default)
