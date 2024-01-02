@@ -56,7 +56,7 @@ namespace Juice.Extensions.Logging.Grpc
             {
                 _channel = GrpcChannel.ForAddress(new Uri(endpoint));
             }
-            if (!_optionsMonitor.CurrentValue.Disabled)
+            if (!_optionsMonitor.CurrentValue.Disabled && _channel != null)
             {
                 _backgroundTask = Task.Run(ExecuteAsync);
             }
