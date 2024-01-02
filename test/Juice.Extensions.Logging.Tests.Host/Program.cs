@@ -11,6 +11,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 builder.Services.AddGrpc();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddGrpcLogServices();
 
 //builder.Services.AddHostedService<LogService>();
 builder.Logging.AddFileLogger(builder.Configuration.GetSection("Logging:File"));

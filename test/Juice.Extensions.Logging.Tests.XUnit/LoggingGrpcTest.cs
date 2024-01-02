@@ -3,6 +3,7 @@ using Juice.Extensions.DependencyInjection;
 using Juice.MultiTenant;
 using Juice.Services;
 using Juice.XUnit;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
@@ -44,6 +45,11 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                         builder.ClearProviders()
                         .AddTestOutputLogger()
                         .AddGrpcLogger(configuration.GetSection("Logging:Grpc"))
+                        .AddGrpcMetricsLogger(options =>
+                        {
+                            configuration.GetSection("Logging:GrpcMetrics").Bind(options);
+                            options.SampleRate = TimeSpan.FromSeconds(3);
+                        })
                         .AddConfiguration(configuration.GetSection("Logging"));
                     });
 
@@ -80,7 +86,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
 
                 await Task.Delay(4000);
             });
-            await Task.Delay(3000);
+            await Task.Delay(6000);
         }
     }
 }

@@ -1,0 +1,32 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+package juice.extensions.logging.grpc;
+
+message GrpcMetric{
+    string name = 1;
+    uint32 dbgCount = 3;
+    uint32 infCount = 4;
+    uint32 wrnCount = 5;
+    uint32 errCount = 6;
+    uint32 criCount = 7;
+    GrpcMetricType type = 8;
+}
+
+enum GrpcMetricType{
+    Category = 0;
+    Service = 1;
+    Operation = 2;
+}
+
+message GrpcMetricsRequest{
+    repeated GrpcMetric metrics = 1;
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+service MetricsWriter{
+    rpc Write(GrpcMetricsRequest) returns (google.protobuf.Empty);
+}

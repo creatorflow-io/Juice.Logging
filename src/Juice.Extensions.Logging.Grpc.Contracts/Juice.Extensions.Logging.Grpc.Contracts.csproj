@@ -8,9 +8,11 @@
 
     <ItemGroup>
       <None Remove="Protos\log.proto" />
+      <None Remove="Protos\metrics.proto" />
     </ItemGroup>
     
     <ItemGroup Label="gRPC">
+        <Protobuf Include="Protos\metrics.proto" />
         <Protobuf Include="Protos\log.proto" />
         <PackageReference Include="Google.Protobuf" Version="$(ProtobufVersion)" />
         <PackageReference Include="Grpc.Tools" Version="$(GrpcVersion)" PrivateAssets="All" />

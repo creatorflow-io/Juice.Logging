@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Juice.Extensions.Logging.Grpc.Server
 {
-    public class LogService : LogWriter.LogWriterBase
+    internal class LogService : LogWriter.LogWriterBase
     {
         private LogDbContext _dbContext;
         private ITenant? _tenantInfo;
