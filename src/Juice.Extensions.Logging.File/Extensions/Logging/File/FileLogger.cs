@@ -250,7 +250,7 @@ namespace Juice.Extensions.Logging.File
                 if (_fork && kvps.Any(kvp => kvp.Key == "TraceId"))
                 {
                     var traceId = kvps.Single(kvp => kvp.Key == "TraceId").Value?.ToString();
-                    var operation = kvps.Single(kvp => kvp.Key == "Operation").Value?.ToString();
+                    var operation = kvps.SingleOrDefault(kvp => kvp.Key == "Operation").Value?.ToString();
                     if (!string.IsNullOrEmpty(traceId))
                     {
                         await FlushAsync();

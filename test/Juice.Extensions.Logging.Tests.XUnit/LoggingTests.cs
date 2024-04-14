@@ -59,8 +59,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             var guid = Guid.NewGuid().ToString();
             using (logger.BeginScope(new Dictionary<string, object>
             {
-                ["TraceId"] = guid,
-                ["Operation"] = "xUnit",
+                ["TraceId"] = guid
             }))
             {
                 logger.LogInformation("Trace1 #1 Test 1 {state}", "Start");
@@ -68,7 +67,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             }
 
             await Task.Delay(logTime);
-            var logFile = Path.Combine(logPath!, "General", $"{guid} - xUnit.log");
+            var logFile = Path.Combine(logPath!, "General", $"{guid}.log");
             _output.WriteLine(logFile);
             FileAPI.Exists(logFile).Should().BeTrue();
 
@@ -93,7 +92,6 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             using (logger.BeginScope(new Dictionary<string, object>
             {
                 ["TraceId"] = guid,
-                ["Operation"] = "xUnit",
                 ["OperationState"] = "Succeeded"
             }))
             {
@@ -104,7 +102,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 logger.LogInformation("Trace1 #1 Test 3 {state}", "End");
             }
             await Task.Delay(logTime);
-            var logFile3 = Path.Combine(logPath!, "General", $"{guid} - xUnit_Succeeded.log");
+            var logFile3 = Path.Combine(logPath!, "General", $"{guid}_Succeeded.log");
             _output.WriteLine(logFile3);
             FileAPI.Exists(logFile3).Should().BeTrue();
             FileAPI.Exists(logFile).Should().BeFalse();
@@ -113,7 +111,6 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             using (logger.BeginScope(new Dictionary<string, object>
             {
                 ["TraceId"] = guid,
-                ["Operation"] = "xUnit",
                 ["OperationState"] = "Succeeded"
             }))
             {
@@ -121,7 +118,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 logger.LogInformation("Trace1 #2 Test 4 {state}", "End");
             }
             await Task.Delay(logTime);
-            var logFile4 = Path.Combine(logPath!, "General", $"{guid} - xUnit_Succeeded (1).log");
+            var logFile4 = Path.Combine(logPath!, "General", $"{guid}_Succeeded (1).log");
             _output.WriteLine(logFile4);
             FileAPI.Exists(logFile4).Should().BeTrue();
             FileAPI.Exists(logFile3).Should().BeTrue();
