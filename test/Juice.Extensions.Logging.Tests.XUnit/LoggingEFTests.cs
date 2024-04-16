@@ -85,6 +85,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
         [InlineData("PostgreSQL")]
         public async Task LogDbContext_should_log_to_databaseAsync(string provider)
         {
+            _output.WriteLine($"ATTENTION: Verify that the appsettings.Development.json will be copy to output");
             await Parallel.ForEachAsync(Enumerable.Range(0, 5), async (i, ct) =>
             {
                 var resolver = new DependencyResolver

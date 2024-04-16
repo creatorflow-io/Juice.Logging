@@ -33,6 +33,12 @@ namespace Juice.Extensions.Logging.EF.DependencyInjection
                     _ => throw new NotSupportedException($"Unsupported provider: {provider}")
                 };
 
+            var connectionString = configuration.GetConnectionString(connectionName);
+            if(string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new NullReferenceException($"Connection string '{connectionName}' is not found in configuration.");
+            }
+
             services.AddDbContext<LogDbContext>(options =>
             {
                 switch (provider)
@@ -40,7 +46,7 @@ namespace Juice.Extensions.Logging.EF.DependencyInjection
                     case "PostgreSQL":
                         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                         options.UseNpgsql(
-                           configuration.GetConnectionString(connectionName),
+                           connectionString,
                             x =>
                             {
                                 x.MigrationsHistoryTable("__EFLogMigrationsHistory", schema);
@@ -50,7 +56,7 @@ namespace Juice.Extensions.Logging.EF.DependencyInjection
 
                     case "SqlServer":
                         options.UseSqlServer(
-                            configuration.GetConnectionString(connectionName),
+                            connectionString,
                             x =>
                             {
                                 x.MigrationsHistoryTable("__EFLogMigrationsHistory", schema);

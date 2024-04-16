@@ -51,6 +51,8 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             });
             var logPath = logOptions.Directory;
             var logTime = logOptions.BufferTime.Add(TimeSpan.FromMilliseconds(200));
+            var month = DateTime.Now.ToString("yyyy_MM");
+            var day = DateTime.Now.ToString("dd");
             logPath.Should().NotBeNullOrEmpty();
 
             var serviceProvider = resolver.ServiceProvider;
@@ -67,7 +69,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             }
 
             await Task.Delay(logTime);
-            var logFile = Path.Combine(logPath!, "General", $"{guid}.log");
+            var logFile = Path.Combine(logPath!, "General", month, day, $"{guid}.log");
             _output.WriteLine(logFile);
             FileAPI.Exists(logFile).Should().BeTrue();
 
@@ -84,7 +86,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             }
 
             await Task.Delay(logTime);
-            var logFile2 = Path.Combine(logPath!, "General", $"{newid} - xUnit_Succeeded.log");
+            var logFile2 = Path.Combine(logPath!, "General", month, day, $"{newid} - xUnit_Succeeded.log");
             _output.WriteLine(logFile2);
             FileAPI.Exists(logFile2).Should().BeTrue();
             FileAPI.Exists(logFile).Should().BeTrue();
@@ -102,7 +104,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 logger.LogInformation("Trace1 #1 Test 3 {state}", "End");
             }
             await Task.Delay(logTime);
-            var logFile3 = Path.Combine(logPath!, "General", $"{guid}_Succeeded.log");
+            var logFile3 = Path.Combine(logPath!, "General", month, day, $"{guid}_Succeeded.log");
             _output.WriteLine(logFile3);
             FileAPI.Exists(logFile3).Should().BeTrue();
             FileAPI.Exists(logFile).Should().BeFalse();
@@ -118,7 +120,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 logger.LogInformation("Trace1 #2 Test 4 {state}", "End");
             }
             await Task.Delay(logTime);
-            var logFile4 = Path.Combine(logPath!, "General", $"{guid}_Succeeded (1).log");
+            var logFile4 = Path.Combine(logPath!, "General", month, day, $"{guid}_Succeeded (1).log");
             _output.WriteLine(logFile4);
             FileAPI.Exists(logFile4).Should().BeTrue();
             FileAPI.Exists(logFile3).Should().BeTrue();
@@ -152,6 +154,8 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             });
             var logPath = logOptions.Directory;
             var logTime = logOptions.BufferTime.Add(TimeSpan.FromMilliseconds(200));
+            var month = DateTime.Now.ToString("yyyy_MM");
+            var day = DateTime.Now.ToString("dd");
             logPath.Should().NotBeNullOrEmpty();
 
             var serviceProvider = resolver.ServiceProvider;
@@ -176,11 +180,11 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 }
             }
             await Task.Delay(logTime);
-            var logFile = Path.Combine(logPath!, "General", $"{guid} - xUnit.log");
+            var logFile = Path.Combine(logPath!, "General", month, day, $"{guid} - xUnit.log");
             _output.WriteLine(logFile);
             FileAPI.Exists(logFile).Should().BeFalse();
 
-            var logFile2 = Path.Combine(logPath!, "General", $"{guid} - xUnit_Succeeded.log");
+            var logFile2 = Path.Combine(logPath!, "General", month, day, $"{guid} - xUnit_Succeeded.log");
             _output.WriteLine(logFile2);
             FileAPI.Exists(logFile2).Should().BeTrue();
             logger.LogInformation("Log outside operation");
@@ -213,6 +217,8 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             });
             var logPath = logOptions.Directory;
             var logTime = logOptions.BufferTime.Add(TimeSpan.FromMilliseconds(200));
+            var month = DateTime.Now.ToString("yyyy_MM");
+            var day = DateTime.Now.ToString("dd");
             logPath.Should().NotBeNullOrEmpty();
 
             var serviceProvider = resolver.ServiceProvider;
@@ -231,11 +237,11 @@ namespace Juice.Extensions.Logging.Tests.XUnit
 
             }
             await Task.Delay(logTime);
-            var logFile = Path.Combine(logPath!, "General", $"{guid} - xUnit.log");
+            var logFile = Path.Combine(logPath!, "General", month, day, $"{guid} - xUnit.log");
             _output.WriteLine(logFile);
             FileAPI.Exists(logFile).Should().BeTrue();
 
-            var logFile2 = Path.Combine(logPath!, "General", $"{guid} - xUnit_Succeeded.log");
+            var logFile2 = Path.Combine(logPath!, "General", month, day, $"{guid} - xUnit_Succeeded.log");
             _output.WriteLine(logFile2);
             FileAPI.Exists(logFile2).Should().BeFalse();
             logger.LogInformation("Log outside operation");
@@ -320,5 +326,6 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 await Task.Delay(1000);
             }
         }
+
     }
 }

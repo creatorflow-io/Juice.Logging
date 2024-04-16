@@ -72,10 +72,15 @@ namespace Juice.Extensions.Logging.File
         private void BeginFile(string? fileName)
         {
             _counter = 0;
-            var dir = Path.Combine(Directory.GetCurrentDirectory(), _directory);
-            Directory.CreateDirectory(dir);
-
-            var newFile = Path.Combine(Directory.GetCurrentDirectory(), _directory, fileName ?? DateTimeOffset.Now.ToString("yyyy_MM_dd-HHmm")) + ".log";
+            var month = DateTimeOffset.Now.ToString("yyyy_MM");
+            var newFile = string.IsNullOrEmpty(fileName)
+                ? Path.Combine(Directory.GetCurrentDirectory(), _directory, month, DateTimeOffset.Now.ToString("yyyy_MM_dd-HHmm")) + ".log"
+                : Path.Combine(Directory.GetCurrentDirectory(), _directory, month, DateTimeOffset.Now.ToString("dd"), fileName) + ".log";
+            var dir = Path.GetDirectoryName(newFile);
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir!);
+            }
 
             _filePath = newFile;
 
@@ -149,6 +154,10 @@ namespace Juice.Extensions.Logging.File
                 if (_counter % 100 == 0)
                 {
                     if (new FileInfo(_filePath).Length > _maxFileSize)
+                    {
+                        BeginFile(default);
+                    }
+                    if (FileAPI.GetCreationTime(_filePath).Date < DateTime.Now.Date)
                     {
                         BeginFile(default);
                     }
