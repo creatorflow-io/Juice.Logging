@@ -5,7 +5,6 @@ namespace Juice.Extensions.Logging.SignalR
     public class SignalRLoggerOptions : FileLoggerOptions
     {
         public string HubUrl { get; set; }
-        public string? JoinGroupMethod { get; set; }
         public string? LogMethod { get; set; }
         public string? StateMethod { get; set; }
         public new bool IncludeScopes { get; set; } = true;

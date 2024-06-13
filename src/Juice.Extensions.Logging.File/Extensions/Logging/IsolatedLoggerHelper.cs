@@ -12,7 +12,7 @@ namespace Juice.Extensions.Logging
             var services = new ServiceCollection();
             services.AddLogging(builder =>
             {
-                ConfigureLogger(builder, category, options);
+                ConfigureLogger(builder, category, options, minLevel);
             });
             return services.BuildServiceProvider().GetRequiredService<ILoggerFactory>().CreateLogger(category);
         }

@@ -1,5 +1,6 @@
 ﻿using Juice.Extensions.Logging;
 using Juice.Extensions.Logging.EF.DependencyInjection;
+using Juice.Extensions.Logging.SignalR;
 using Juice.Extensions.Logging.Tests.Host;
 using Juice.MultiTenant;
 using Juice.MultiTenant.EF;
@@ -13,7 +14,11 @@ builder.Services.AddGrpc();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddGrpcLogServices();
 
-//builder.Services.AddHostedService<LogService>();
+builder.Services.AddHostedService<LogService>();
+builder.Services.AddSingleton<LogClient>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<LogClient>());
+builder.Services.AddSingleton<ILogClient>(sp => sp.GetRequiredService<LogClient>());
+
 builder.Logging.AddFileLogger(builder.Configuration.GetSection("Logging:File"));
 builder.Logging.AddSignalRLogger(builder.Configuration.GetSection("Logging:SignalR"));
 builder.Logging.AddDbLogger(builder.Configuration.GetSection("Logging:Db"), builder.Configuration);

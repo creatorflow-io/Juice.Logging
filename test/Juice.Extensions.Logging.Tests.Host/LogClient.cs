@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Juice.Extensions.Logging.SignalR;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Options;
 
-namespace Juice.Extensions.Logging.SignalR
+namespace Juice.Extensions.Logging.Tests.Host
 {
-    internal class SignalRLogger : ILogClient, IDisposable
+    internal class LogClient : ILogClient, IHostedService, IDisposable
     {
         private IOptionsMonitor<SignalRLoggerOptions> _optionsMonitor;
         private SignalRLoggerOptions Options => _optionsMonitor.CurrentValue;
@@ -19,20 +17,18 @@ namespace Juice.Extensions.Logging.SignalR
         private string _logMethod;
         private string _stateMethod;
 
-        public SignalRLogger(IOptionsMonitor<SignalRLoggerOptions> optionsMonitor)
+        public LogClient(IOptionsMonitor<SignalRLoggerOptions> optionsMonitor)
         {
             _optionsMonitor = optionsMonitor;
-            _logger = IsolatedLoggerHelper.BuildLogger("SignalRLogger", Options);
-
             _logMethod = Options.LogMethod ?? nameof(ILogClient.LoggingAsync);
             _stateMethod = Options.StateMethod ?? nameof(ILogClient.StateAsync);
+            _logger = IsolatedLoggerHelper.BuildLogger("SignalRLoggerClient", Options);
             optionsMonitor.OnChange((o, s) =>
             {
-                if (o.Disabled && _connectionTask != null)
+                if(o.Disabled && _connectionTask != null)
                 {
                     _shutdown.Cancel();
-                }
-                else if (!o.Disabled && _connectionTask == null)
+                }else if(!o.Disabled && _connectionTask == null)
                 {
                     _shutdown = new CancellationTokenSource();
                     _connectionTask = Task.Run(CheckConnectionAsync);
@@ -54,12 +50,12 @@ namespace Juice.Extensions.Logging.SignalR
 
         private async Task<bool> SendAsync(string method, object?[] args)
         {
-            if (Options.Disabled)
+            if(Options.Disabled)
             {
                 return false;
             }
             var sent = false;
-
+            
             foreach (var connection in _serverConnections.Values)
             {
                 sent = await SendAsync(connection, method, args) || sent;
@@ -107,11 +103,6 @@ namespace Juice.Extensions.Logging.SignalR
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Service is starting.");
-            _logger.LogInformation("Disabled: {disabled}", Options.Disabled);
-            _logger.LogInformation("HubUrl: {hubUrl}", Options.HubUrl);
-            _logger.LogInformation("LogMethod: {logMethod}", _logMethod);
-            _logger.LogInformation("StateMethod: {stateMethod}", _stateMethod);
-            _logger.LogInformation("IncludeScopes: {includeScopes}", Options.IncludeScopes);
             if (!Options.Disabled)
             {
                 _connectionTask = Task.Run(CheckConnectionAsync);
@@ -136,7 +127,7 @@ namespace Juice.Extensions.Logging.SignalR
 
         private HubConnection BuildConnection(string endpoint)
         {
-            var connection = new HubConnectionBuilder()
+            return new HubConnectionBuilder()
                     .WithUrl(endpoint)
                     .AddJsonProtocol(options =>
                     {
@@ -148,11 +139,7 @@ namespace Juice.Extensions.Logging.SignalR
                     })
                     .Build()
                     ;
-            connection.Closed += async (error) =>
-            {
-                _logger.LogError($"Connection closed. {error?.Message}");
-            };
-            return connection;
+
         }
         private async Task EnsureConnectedAsync(string endpoint)
         {
@@ -188,7 +175,7 @@ namespace Juice.Extensions.Logging.SignalR
                 {
                     try
                     {
-                        var hubUrls = Options.HubUrl?.Split(';') ?? Array.Empty<string>();
+                        var hubUrls = Options.HubUrl?.Split(';')?? Array.Empty<string>();
                         foreach (var endpoint in hubUrls)
                         {
                             await EnsureConnectedAsync(endpoint);
@@ -222,6 +209,7 @@ namespace Juice.Extensions.Logging.SignalR
         }
         #endregion
 
+
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 
@@ -241,7 +229,7 @@ namespace Juice.Extensions.Logging.SignalR
         }
 
         // override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        ~SignalRLogger()
+        ~LogClient()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(false);

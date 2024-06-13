@@ -10,11 +10,14 @@ namespace Juice.Extensions.Logging.SignalR
         private IOptionsMonitor<SignalRLoggerOptions> _optionsMonitor;
         public SignalRLoggerOptions Options => _optionsMonitor.CurrentValue;
         private IScopesFilter _scopesFilter;
+        private ILogClient? _logClient;
 
-        public SignalRLoggerProvider(IOptionsMonitor<SignalRLoggerOptions> optionsMonitor, IScopesFilter scopesFilter)
+        public SignalRLoggerProvider(IOptionsMonitor<SignalRLoggerOptions> optionsMonitor,
+            IScopesFilter scopesFilter, ILogClient? logClient = default)
         {
             _optionsMonitor = optionsMonitor;
             _scopesFilter = scopesFilter;
+            _logClient = logClient;
         }
 
         public override void WriteLog<TState>(LogEntry<TState> entry, string formattedMessage, IExternalScopeProvider? scopeProvider)
@@ -149,26 +152,15 @@ namespace Juice.Extensions.Logging.SignalR
             }
         }
 
-        private Dictionary<Guid, SignalRLogger> _loggers = new Dictionary<Guid, SignalRLogger>();
-
-        private SignalRLogger GetLogger(Guid serviceId)
+        private ILogClient GetLogger(Guid serviceId)
         {
-
-            if (!_loggers.ContainsKey(serviceId))
+            if(_logClient == null)
             {
-                try
-                {
-                    _loggers.Add(serviceId, new SignalRLogger(serviceId.ToString(), Options));
-                    _loggers[serviceId].StartAsync().Wait();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error while initializing SignalRLogger: {ex.Message}");
-                    throw new Exception($"Error while initializing SignalRLogger: {ex.Message}", ex);
-                }
+                var client = new SignalRLogger(_optionsMonitor);
+                client.StartAsync(default).Wait();
+                _logClient = client;
             }
-
-            return _loggers[serviceId];
+            return _logClient;
         }
     }
 }
