@@ -21,11 +21,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juice.Extensions.Logging.EF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juice.Extensions.Logging.EF.PostgreSQL", "src\Juice.Extensions.Logging.EF.PostgreSQL\Juice.Extensions.Logging.EF.PostgreSQL.csproj", "{F061C0EC-A3E1-4407-9E6C-5F048D6F5086}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Juice.Extensions.Logging.Grpc.Contracts", "src\Juice.Extensions.Logging.Grpc.Contracts\Juice.Extensions.Logging.Grpc.Contracts.csproj", "{958E7D54-9A35-438D-A742-B269BF8D55B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juice.Extensions.Logging.Grpc.Contracts", "src\Juice.Extensions.Logging.Grpc.Contracts\Juice.Extensions.Logging.Grpc.Contracts.csproj", "{958E7D54-9A35-438D-A742-B269BF8D55B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Juice.Extensions.Logging.Grpc.Server", "src\Juice.Extensions.Logging.Grpc.Server\Juice.Extensions.Logging.Grpc.Server.csproj", "{F3FFB12B-EC41-4122-A9A6-CB4FFC0336A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juice.Extensions.Logging.Grpc.Server", "src\Juice.Extensions.Logging.Grpc.Server\Juice.Extensions.Logging.Grpc.Server.csproj", "{F3FFB12B-EC41-4122-A9A6-CB4FFC0336A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Juice.Extensions.Logging.Grpc", "src\Juice.Extensions.Logging.Grpc\Juice.Extensions.Logging.Grpc.csproj", "{8A44620A-004D-474F-8960-5AD96C881A30}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Juice.Extensions.Logging.Grpc", "src\Juice.Extensions.Logging.Grpc\Juice.Extensions.Logging.Grpc.csproj", "{8A44620A-004D-474F-8960-5AD96C881A30}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B7FA2645-F122-4E63-B078-A262FFFB8855}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

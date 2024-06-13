@@ -45,6 +45,11 @@
         log(`[${serviceId}] [${traceId}] [${level}] [${category}] ${message}`, contextual);
     });
 
+	connection.on("LoggingAsync", (serviceId, traceId, message, level, contextual) => {
+		console.log(`[${serviceId}] [${traceId}] [${level}] ${message} - ${contextual}`);
+		log(`[${serviceId}] [${traceId}] [${level}] ${message}`, contextual);
+	});
+
     connection.on("StateAsync", (serviceId, traceId, state, message) => {
         console.log(`[${serviceId}] [${traceId}] ${message} - ${state}`);
         log(`[${serviceId}] [${traceId}] [${state}] ${message}`, state == "Succeeded" ? "success" : null);
