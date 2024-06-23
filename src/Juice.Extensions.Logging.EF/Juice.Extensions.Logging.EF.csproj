@@ -7,17 +7,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="$(EFVersion)" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(EFVersion)" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="$(NpgsqlVersion)" />
     </ItemGroup>
-    
+
     <ItemGroup>
         <PackageReference Include="Juice.EF.MultiTenant" Version="$(JuiceRefVersion)" />
     </ItemGroup>
 
-    
+
     <ItemGroup>
-      <ProjectReference Include="..\Juice.Extensions.Logging.File\Juice.Extensions.Logging.File.csproj" />
+        <ProjectReference Include="..\Juice.Extensions.Logging.File\Juice.Extensions.Logging.File.csproj" />
     </ItemGroup>
 </Project>
