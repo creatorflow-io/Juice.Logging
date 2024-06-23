@@ -50,14 +50,19 @@ namespace Juice.Extensions.Logging.File
             try
             {
                 List<FileInfo> files = new DirectoryInfo(_directory)
-                .GetFiles("*.log", SearchOption.TopDirectoryOnly)
+                .GetFiles("*.log", SearchOption.AllDirectories)
                 .OrderBy(fi => fi.CreationTime)
                 .ToList();
 
                 while (files.Count >= _retainPolicyFileCount)
                 {
                     var file = files.First();
+                    var directory = file.Directory;
                     file.Delete();
+                    if(directory != null && !directory.EnumerateFiles().Any() && !directory.EnumerateDirectories().Any())
+                    {
+                        directory.Delete();
+                    }
                     files.Remove(file);
                 }
             }
@@ -339,17 +344,20 @@ namespace Juice.Extensions.Logging.File
 
         private void EndScopes(StringBuilder sb, List<string> scopes, List<string> newScopes)
         {
-            for (var i = 0; i < scopes.Count; i++)
+            if (_includeScopes)
             {
-                if (i >= newScopes.Count)
+                for (var i = 0; i < scopes.Count; i++)
                 {
-                    sb.AppendLine();
-                    for (var j = scopes.Count - 1; j >= i; j--)
+                    if (i >= newScopes.Count)
                     {
-                        sb.AppendFormat("{0}   End: {1}", new string('-', (j + 1) * 4), scopes[j]);
                         sb.AppendLine();
+                        for (var j = scopes.Count - 1; j >= i; j--)
+                        {
+                            sb.AppendFormat("{0}   End: {1}", new string('-', (j + 1) * 4), scopes[j]);
+                            sb.AppendLine();
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
