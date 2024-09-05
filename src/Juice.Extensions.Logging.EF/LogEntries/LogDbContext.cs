@@ -1,4 +1,5 @@
 ﻿using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Juice.EF;
 using Juice.Extensions.DependencyInjection;

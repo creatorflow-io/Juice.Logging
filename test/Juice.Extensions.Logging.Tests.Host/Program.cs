@@ -24,8 +24,6 @@ builder.Logging.AddSignalRLogger(builder.Configuration.GetSection("Logging:Signa
 builder.Logging.AddDbLogger(builder.Configuration.GetSection("Logging:Db"), builder.Configuration);
 builder.Logging.AddMetricsLogger(builder.Configuration.GetSection("Logging:Metrics"), builder.Configuration);
 
-ConfigureMultiTenant(builder);
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -41,7 +39,6 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
-app.UseMultiTenant();
 app.UseStaticFiles();
 
 app.MapRazorPages();
@@ -56,27 +53,3 @@ await app.MigrateLogMetricsDbAsync();
 
 app.Run();
 
-
-static void ConfigureMultiTenant(WebApplicationBuilder builder)
-{
-    var tenantAuthority = builder.Configuration.GetSection("OpenIdConnect:TenantAuthority").Value;
-    builder.Services
-    .AddMultiTenant(options =>
-    {
-        options.IgnoredIdentifiers.Add("css");
-        options.IgnoredIdentifiers.Add("js");
-        options.IgnoredIdentifiers.Add("lib");
-        options.IgnoredIdentifiers.Add("images");
-        options.IgnoredIdentifiers.Add("favicon.ico");
-        options.IgnoredIdentifiers.Add("loghub");
-    })
-    .ConfigureTenantEFDirectly(builder.Configuration, options =>
-    {
-        options.DatabaseProvider = "PostgreSQL";
-        options.ConnectionName = "PostgreConnection";
-        options.Schema = "App";
-    }, builder.Environment.EnvironmentName)
-    .WithBasePathStrategy(options => options.RebaseAspNetCorePathBase = true)
-    ;
-
-}
