@@ -9,7 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsVersion)" />
-        <PackageReference Include="Juice.Extensions.Logging" Version="$(JuiceRefVersion)" />
-        <PackageReference Include="Juice.Extensions.Options" Version="$(JuiceRefVersion)" />
+        <PackageReference Include="Juice.Extensions.Logging" Version="$(JuiceVersion)" />
+        <PackageReference Include="Juice.Extensions.Options" Version="$(JuiceVersion)" />
     </ItemGroup>
 </Project>

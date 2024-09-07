@@ -30,7 +30,7 @@ namespace Juice.Extensions.Logging.EF.LogEntries
         {
             var dbOptions = serviceProvider.GetService<DbOptions<LogDbContext>>();
             Schema = dbOptions?.Schema;
-            TenantInfo = serviceProvider.GetService<ITenantInfo>() ?? new TenantInfo { Id = "" };
+            TenantInfo = serviceProvider.GetService<IMultiTenantContextAccessor>()?.MultiTenantContext.TenantInfo;
         }
 
         public DbSet<LogEntry> Logs { get; set; }

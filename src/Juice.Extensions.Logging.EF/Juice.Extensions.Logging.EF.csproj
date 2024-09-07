@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Juice.EF.MultiTenant" Version="$(JuiceRefVersion)" />
+        <PackageReference Include="Juice.EF.MultiTenant" Version="$(JuiceVersion)" />
     </ItemGroup>
 
 

@@ -1,5 +1,4 @@
-﻿using Finbuckle.MultiTenant;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Juice.EF.Extensions;
 using Juice.Extensions.DependencyInjection;
 using Juice.Extensions.Logging.EF.LogEntries;
@@ -122,43 +121,37 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                         .AddConfiguration(configuration.GetSection("Logging"));
                     });
 
-                    services.AddScoped(sp =>
-                    {
-                        var id = i % 2 == 0 ? "TenantA" : "TenantB";
-                        return new MultiTenant.TenantInfo { Id = id, Identifier = id };
-                    });
-
-                    services.AddScoped<ITenant>(sp => sp.GetRequiredService<MultiTenant.TenantInfo>());
-                    services.AddScoped<ITenantInfo>(sp => sp.GetRequiredService<MultiTenant.TenantInfo>());
+                    services.AddTestTenantRandom<TenantInfo>();
 
                 });
-                using var scope = resolver.ServiceProvider.
-                    CreateScope();
-                var serviceProvider = scope.ServiceProvider;
-                var tenant = serviceProvider.GetRequiredService<ITenantInfo>();
-                var context = serviceProvider.GetRequiredService<LogDbContext>();
-                tenant.Id.Should().BeSameAs(context.TenantInfo.Id);
-                var traceId = new DefaultStringIdGenerator().GenerateRandomId(6);
-
-                var logger = serviceProvider.GetRequiredService<ILogger<LoggingTests>>();
-
-                using (logger.BeginScope(new Dictionary<string, object> {
-                    { "TraceId", traceId}
-                }))
+                using var scope = resolver.ServiceProvider.CreateScope();
+                await scope.ServiceProvider.TenantInvokeAsync(async httpContext =>
                 {
-                    logger.LogInformation("Test log message {tenant} {traceId}", tenant.Id, traceId);
-                    for (var j = 0; j < 3; j++)
-                    {
-                        await Task.Delay(300);
-                        logger.LogInformation("Test log message {j} {tenant} {traceId}", j, tenant.Id, traceId);
-                    }
-                }
+                    var tenant = httpContext.RequestServices.GetRequiredService<ITenant>();
+                    var context = httpContext.RequestServices.GetRequiredService<LogDbContext>();
+                    tenant.Id.Should().BeSameAs(context.TenantInfo.Id);
+                    var traceId = new DefaultStringIdGenerator().GenerateRandomId(6);
 
-                await Task.Delay(5000);
-                var log = await context.Logs.Where(l => l.TraceId == traceId)
-                    .FirstOrDefaultAsync();
-                _output.WriteLine($"Log: {log?.Message} {traceId} {tenant.Id} {context.TenantInfo.Id}");
-                log.Should().NotBeNull();
+                    var logger = httpContext.RequestServices.GetRequiredService<ILogger<LoggingTests>>();
+
+                    using (logger.BeginScope(new Dictionary<string, object> {
+                    { "TraceId", traceId}
+                    }))
+                    {
+                        logger.LogInformation("Test log message {tenant} {traceId}", tenant.Id, traceId);
+                        for (var j = 0; j < 3; j++)
+                        {
+                            await Task.Delay(300);
+                            logger.LogInformation("Test log message {j} {tenant} {traceId}", j, tenant.Id, traceId);
+                        }
+                    }
+
+                    await Task.Delay(5000);
+                    var log = await context.Logs.Where(l => l.TraceId == traceId)
+                        .FirstOrDefaultAsync();
+                    _output.WriteLine($"Log: {log?.Message} {traceId} {tenant.Id} {context.TenantInfo.Id}");
+                    log.Should().NotBeNull();
+                });
             });
             await Task.Delay(3000);
         }

@@ -26,7 +26,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Juice.MultiTenant.EF.SqlServer" Version="$(JuiceRefVersion)" />
+        <PackageReference Include="Juice.MultiTenant.EF.SqlServer" Version="$(JuiceTenantVersion)" />
         <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="6.*" />
     </ItemGroup>
 </Project>

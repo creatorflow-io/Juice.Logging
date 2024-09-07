@@ -1,5 +1,4 @@
-﻿using Finbuckle.MultiTenant;
-using Juice.Extensions.DependencyInjection;
+﻿using Juice.Extensions.DependencyInjection;
 using Juice.MultiTenant;
 using Juice.Services;
 using Juice.XUnit;
@@ -53,37 +52,31 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                         .AddConfiguration(configuration.GetSection("Logging"));
                     });
 
-                    services.AddScoped(sp =>
-                    {
-                        var id = i % 2 == 0 ? "TenantA" : "TenantB";
-                        return new MultiTenant.TenantInfo { Id = id, Identifier = id };
-                    });
-
-                    services.AddScoped<ITenant>(sp => sp.GetRequiredService<MultiTenant.TenantInfo>());
-                    services.AddScoped<ITenantInfo>(sp => sp.GetRequiredService<MultiTenant.TenantInfo>());
+                    services.AddTestTenantRandom<TenantInfo>();
 
                 });
-                using var scope = resolver.ServiceProvider.
-                    CreateScope();
-                var serviceProvider = scope.ServiceProvider;
-                var tenant = serviceProvider.GetRequiredService<ITenantInfo>();
+                using var scope = resolver.ServiceProvider.CreateScope();
+                await scope.ServiceProvider.TenantInvokeAsync(async context => {
+                    var tenant = context.RequestServices.GetRequiredService<ITenant>();
 
-                var traceId = new DefaultStringIdGenerator().GenerateRandomId(6);
+                    var traceId = new DefaultStringIdGenerator().GenerateRandomId(6);
 
-                var logger = serviceProvider.GetRequiredService<ILogger<LoggingTests>>();
+                    var logger = context.RequestServices.GetRequiredService<ILogger<LoggingTests>>();
 
-                using (logger.BeginScope(new Dictionary<string, object> {
-                    { "TraceId", traceId}
-                }))
-                {
-                    logger.LogInformation("Test grpc log message {tenant} {traceId}", tenant.Id, traceId);
-                    for (var j = 0; j < 3; j++)
+                    using (logger.BeginScope(new Dictionary<string, object> {
+                        { "TraceId", traceId}
+                    }))
                     {
-                        await Task.Delay(300);
-                        logger.LogInformation("Test grpc log message {j} {tenant} {traceId}", j, tenant.Id, traceId);
+                        logger.LogInformation("Test grpc log message {tenant} {traceId}", tenant.Id, traceId);
+                        for (var j = 0; j < 3; j++)
+                        {
+                            await Task.Delay(300);
+                            logger.LogInformation("Test grpc log message {j} {tenant} {traceId}", j, tenant.Id, traceId);
+                        }
                     }
-                }
 
+                });
+                
                 await Task.Delay(4000);
             });
             await Task.Delay(6000);
