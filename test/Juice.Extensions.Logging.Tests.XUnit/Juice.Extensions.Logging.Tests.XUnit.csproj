@@ -36,7 +36,7 @@
         <PackageReference Include="Juice" Version="$(JuiceVersion)" />
         <PackageReference Include="Juice.XUnit" Version="$(JuiceVersion)" />
         <PackageReference Include="Juice.MultiTenant.TestHelper" Version="$(JuiceVersion)" />
-        <PackageReference Include="Juice.MultiTenant" Version="$(JuiceTenantVersion)" />
+        <PackageReference Include="Juice.MultiTenant" Version="$(JuiceVersion)" />
     </ItemGroup>
 
     <ItemGroup>
