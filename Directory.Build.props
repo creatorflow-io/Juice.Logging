@@ -19,14 +19,14 @@
     <AppTargetFramework>net8.0</AppTargetFramework>
     <MicrosoftExtensionsVersion>8.0.*</MicrosoftExtensionsVersion>
     <SignalRVersion>8.0.*</SignalRVersion>
-    <GrpcVersion>2.57.0</GrpcVersion>
-    <ProtobufVersion>3.24.3</ProtobufVersion>
+    <GrpcVersion>2.66.*</GrpcVersion>
+    <ProtobufVersion>3.28.*</ProtobufVersion>
     <MediatRVersion>12.4.*</MediatRVersion>
     <RedisVersion>2.6.122</RedisVersion>
     <FinbuckleVersion>7.0.*</FinbuckleVersion>
     <SwashbuckleVersion>6.7.*</SwashbuckleVersion>
     <JuiceRefSuffix Condition="'$(JuiceRefSuffix)' == '' And '$(CI)' == ''">-alpha.*</JuiceRefSuffix>
-    <JuiceVersion>7.0.*$(JuiceRefSuffix)</JuiceVersion>
+    <JuiceVersion>8.0.*$(JuiceRefSuffix)</JuiceVersion>
     <XUnitVersion>2.9.*</XUnitVersion>
     <TestSdk>17.11.*</TestSdk>
   </PropertyGroup>
