@@ -1,9 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFrameworks>$(AppTargetFramework)</TargetFrameworks>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>466a8f1c-c43c-4301-9712-b4075b7c7a7a</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup Label="Migrations">
