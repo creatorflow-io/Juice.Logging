@@ -27,6 +27,8 @@
     <SwashbuckleVersion>6.7.*</SwashbuckleVersion>
     <JuiceRefSuffix Condition="'$(JuiceRefSuffix)' == '' And '$(CI)' == ''">-alpha.*</JuiceRefSuffix>
     <JuiceVersion>7.0.*$(JuiceRefSuffix)</JuiceVersion>
+    <XUnitVersion>2.9.*</XUnitVersion>
+    <TestSdk>17.11.*</TestSdk>
   </PropertyGroup>
   
   <PropertyGroup Label="Versioning" Condition="'$(TargetFramework)' == 'net6.0'">
