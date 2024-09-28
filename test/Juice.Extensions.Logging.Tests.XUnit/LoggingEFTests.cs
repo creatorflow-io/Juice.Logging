@@ -129,7 +129,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 {
                     var tenant = httpContext.RequestServices.GetRequiredService<ITenant>();
                     var context = httpContext.RequestServices.GetRequiredService<LogDbContext>();
-                    tenant.Id.Should().BeSameAs(context.TenantInfo.Id);
+                    tenant.Id.Should().BeSameAs(context.TenantInfo?.Id);
                     var traceId = new DefaultStringIdGenerator().GenerateRandomId(6);
 
                     var logger = httpContext.RequestServices.GetRequiredService<ILogger<LoggingTests>>();
@@ -149,7 +149,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                     await Task.Delay(5000);
                     var log = await context.Logs.Where(l => l.TraceId == traceId)
                         .FirstOrDefaultAsync();
-                    _output.WriteLine($"Log: {log?.Message} {traceId} {tenant.Id} {context.TenantInfo.Id}");
+                    _output.WriteLine($"Log: {log?.Message} {traceId} {tenant.Id} {context.TenantInfo?.Id}");
                     log.Should().NotBeNull();
                 });
             });

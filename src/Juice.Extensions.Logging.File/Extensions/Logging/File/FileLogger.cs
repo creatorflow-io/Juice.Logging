@@ -9,7 +9,7 @@ namespace Juice.Extensions.Logging.File
         private ConcurrentQueue<LogEntry> _logQueue = new();
 
         private string _directory;
-        private string _filePath;
+        private string? _filePath;
 
         private int _retainPolicyFileCount = 50;
         private int _maxFileSize = 5 * 1024 * 1024;
@@ -114,7 +114,7 @@ namespace Juice.Extensions.Logging.File
 
         private void RestoreOriginFile(string? state)
         {
-            if (_forked && !string.IsNullOrEmpty(_originFilePath))
+            if (_forked && !string.IsNullOrEmpty(_originFilePath) && !string.IsNullOrEmpty(_filePath))
             {
                 _forked = false;
                 var origin = _filePath;
@@ -155,6 +155,10 @@ namespace Juice.Extensions.Logging.File
             // check the file size after any 100 writes
             try
             {
+                if(_filePath==null)
+                {
+                    return;
+                }
                 _counter++;
                 if (_counter % 100 == 0)
                 {
