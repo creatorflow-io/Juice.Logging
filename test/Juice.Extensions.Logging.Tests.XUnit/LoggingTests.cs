@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Text;
+using FluentAssertions;
 using Juice.Extensions.DependencyInjection;
 using Juice.Extensions.Logging.EF.LogMetrics;
 using Juice.Extensions.Logging.File;
@@ -19,6 +20,64 @@ namespace Juice.Extensions.Logging.Tests.XUnit
         {
             _output = output;
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
+        }
+
+        [IgnoreOnCIFact(DisplayName = "Large log should")]
+        public async Task LargeLog_should_Async()
+        {
+            var resolver = new DependencyResolver
+            {
+                CurrentDirectory = AppContext.BaseDirectory
+            };
+            var logOptions = new FileLoggerOptions
+            {
+                Directory = "C:\\Workspace\\Services\\logs\\tmp",
+                BufferTime = TimeSpan.FromSeconds(5),
+                IncludeScopes = true,
+                MaxFileSize = 5 * 1024 * 1024
+            };
+            resolver.ConfigureServices(services =>
+            {
+                var configService = services.BuildServiceProvider().GetRequiredService<IConfigurationService>();
+                var configuration = configService.GetConfiguration();
+                services.AddSingleton(provider => _output);
+                services.AddLogging(builder =>
+                {
+                    builder.ClearProviders()
+                    .AddFileLogger(options =>
+                    {
+                        options.Directory = logOptions.Directory;
+                        options.BufferTime = logOptions.BufferTime;
+                        options.IncludeScopes = logOptions.IncludeScopes;
+                    })
+                    .AddConfiguration(configuration.GetSection("Logging"));
+                });
+            });
+            var logPath = logOptions.Directory;
+            var logTime = logOptions.BufferTime.Add(TimeSpan.FromMilliseconds(200));
+            logPath.Should().NotBeNullOrEmpty();
+            var serviceProvider = resolver.ServiceProvider;
+            var logger = serviceProvider.GetRequiredService<ILogger<LoggingTests>>();
+            var maxCapacity = new StringBuilder().MaxCapacity;
+            for (var i = 0; i < 100; i++)
+            {
+                logger.LogInformation(new string('A', 1000000));
+                await Task.Delay(10);
+            }
+
+            await Task.Delay(logTime);
+            //delete all log files in the directory
+            var files = Directory.EnumerateFiles(logPath!, "*", SearchOption.AllDirectories);
+            long maxFileSize = 0;
+            foreach (var file in files)
+            {
+                var fileInfo = new FileInfo(file);
+                maxFileSize = Math.Max(maxFileSize, new FileInfo(file).Length);
+                FileAPI.Delete(file);
+            }
+            _output.WriteLine(logPath);
+            _output.WriteLine($"Allowed max file size: {logOptions.MaxFileSize}. Reality max file size: {maxFileSize}. Delta: {maxFileSize - logOptions.MaxFileSize}");
+            maxFileSize.Should().BeLessThan(logOptions.MaxFileSize + 1000200); // max file size + (a line of log and time info)
         }
 
         [IgnoreOnCIFact(DisplayName = "Log file should by TraceId"), TestPriority(999)]
