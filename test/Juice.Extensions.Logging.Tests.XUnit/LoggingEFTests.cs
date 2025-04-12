@@ -38,7 +38,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
             resolver.ConfigureServices(services =>
             {
                 var configService = services.BuildServiceProvider().GetRequiredService<IConfigurationService>();
-                var configuration = configService.GetConfiguration();
+                var configuration = configService.GetConfiguration(GetType().Assembly);
 
                 // Register DbContext class
 
@@ -94,7 +94,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 resolver.ConfigureServices(services =>
                 {
                     var configService = services.BuildServiceProvider().GetRequiredService<IConfigurationService>();
-                    var configuration = configService.GetConfiguration();
+                    var configuration = configService.GetConfiguration(GetType().Assembly);
                     // Register DbContext class
 
                     services.AddDefaultStringIdGenerator();

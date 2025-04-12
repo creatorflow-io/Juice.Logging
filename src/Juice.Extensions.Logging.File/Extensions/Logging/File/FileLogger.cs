@@ -9,7 +9,7 @@ namespace Juice.Extensions.Logging.File
         private ConcurrentQueue<LogEntry> _logQueue = new();
 
         private string _directory;
-        private string _filePath;
+        private string? _filePath;
 
         private int _retainPolicyFileCount = 50;
         private int _maxFileSize = 5 * 1024 * 1024;
@@ -31,7 +31,7 @@ namespace Juice.Extensions.Logging.File
             {
                 _maxFileSize = options.MaxFileSize;
             }
-            _directory = directory ?? "";
+            _directory = Path.Combine(Directory.GetCurrentDirectory(), directory ?? "");
             if (options.BufferTime.TotalMilliseconds > 0)
             {
                 _bufferTime = options.BufferTime;
@@ -59,7 +59,7 @@ namespace Juice.Extensions.Logging.File
                     var file = files.First();
                     var directory = file.Directory;
                     file.Delete();
-                    if(directory != null && !directory.EnumerateFiles().Any() && !directory.EnumerateDirectories().Any())
+                    if (directory != null && !directory.EnumerateFiles().Any() && !directory.EnumerateDirectories().Any())
                     {
                         directory.Delete();
                     }
@@ -79,17 +79,38 @@ namespace Juice.Extensions.Logging.File
             _counter = 0;
             var month = DateTimeOffset.Now.ToString("yyyy_MM");
             var newFile = string.IsNullOrEmpty(fileName)
-                ? Path.Combine(Directory.GetCurrentDirectory(), _directory, month, DateTimeOffset.Now.ToString("yyyy_MM_dd-HHmm")) + ".log"
-                : Path.Combine(Directory.GetCurrentDirectory(), _directory, month, DateTimeOffset.Now.ToString("dd"), fileName) + ".log";
+                ? GetUniqueFilePath(Path.Combine(_directory, month, DateTimeOffset.Now.ToString("yyyy_MM_dd-HHmmss")) + ".log")
+                : Path.Combine(_directory, month, DateTimeOffset.Now.ToString("dd"), fileName) + ".log";
             var dir = Path.GetDirectoryName(newFile);
             if (!Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir!);
             }
-
+            if(_filePath != null && FileAPI.Exists(_filePath) && _filePath != newFile)
+            {
+                FileAPI.AppendAllText(_filePath, "Begin " + Path.GetRelativePath(Path.GetDirectoryName(_filePath) ?? Directory.GetCurrentDirectory(), newFile) + "\n");
+            }
             _filePath = newFile;
 
             ApplyRetainPolicy();
+        }
+
+        private static string GetUniqueFilePath(string filePath)
+        {
+            string directory = Path.GetDirectoryName(filePath)!;
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
+            string extension = Path.GetExtension(filePath);
+
+            string newPath = filePath;
+            int count = 1;
+
+            while (FileAPI.Exists(newPath))
+            {
+                newPath = Path.Combine(directory, $"{fileName} ({count}){extension}");
+                count++;
+            }
+
+            return newPath;
         }
 
         private string? _originFilePath;
@@ -105,7 +126,6 @@ namespace Juice.Extensions.Logging.File
                 }
                 RestoreOriginFile(default);
             }
-            WriteLineAsync("Begin " + fileName + "\n").Wait();
 
             _forked = true;
             _originFilePath = _filePath;
@@ -114,7 +134,7 @@ namespace Juice.Extensions.Logging.File
 
         private void RestoreOriginFile(string? state)
         {
-            if (_forked && !string.IsNullOrEmpty(_originFilePath))
+            if (_forked && !string.IsNullOrEmpty(_originFilePath) && !string.IsNullOrEmpty(_filePath))
             {
                 _forked = false;
                 var origin = _filePath;
@@ -123,9 +143,10 @@ namespace Juice.Extensions.Logging.File
                 {
                     origin = RenameFile(_filePath, state);
                 }
+                var relativePath = Path.GetRelativePath(Path.GetDirectoryName(_originFilePath) ?? Directory.GetCurrentDirectory(), origin);
                 _filePath = _originFilePath;
                 _originFilePath = default;
-                WriteLineAsync("Restore from " + Path.GetFileName(origin) + "\n").Wait();
+                FileAPI.AppendAllText(_filePath, "Restored from " + relativePath + "\n");
             }
         }
 
@@ -133,13 +154,8 @@ namespace Juice.Extensions.Logging.File
         {
             if (FileAPI.Exists(filePath))
             {
-                var newFile = Path.Combine(Path.GetDirectoryName(filePath)!, Path.GetFileNameWithoutExtension(filePath) + "_" + state + Path.GetExtension(filePath));
-                var ver = 0;
-                while (FileAPI.Exists(newFile))
-                {
-                    newFile = Path.Combine(Path.GetDirectoryName(filePath)!, Path.GetFileNameWithoutExtension(filePath) + "_" + state + " (" + (++ver) + ")" + Path.GetExtension(filePath));
-                }
-
+                var newFile = GetUniqueFilePath(Path.Combine(Path.GetDirectoryName(filePath)!, Path.GetFileNameWithoutExtension(filePath) + "_" + state + Path.GetExtension(filePath)));
+                
                 FileAPI.Move(filePath, newFile);
                 return newFile;
             }
@@ -155,22 +171,17 @@ namespace Juice.Extensions.Logging.File
             // check the file size after any 100 writes
             try
             {
-                _counter++;
-                if (_counter % 100 == 0)
+                if (_filePath == null || string.IsNullOrEmpty(message))
                 {
-                    if (new FileInfo(_filePath).Length > _maxFileSize)
-                    {
-                        BeginFile(default);
-                    }
-                    if (FileAPI.GetCreationTime(_filePath).Date < DateTime.Now.Date)
-                    {
-                        BeginFile(default);
-                    }
+                    return;
                 }
-                if (!string.IsNullOrEmpty(message))
+
+                if (FileAPI.Exists(_filePath) && (new FileInfo(_filePath).Length > _maxFileSize || FileAPI.GetCreationTime(_filePath).Date < DateTime.Now.Date))
                 {
-                    await FileAPI.AppendAllTextAsync(_filePath, message);
+                    BeginFile(default);
                 }
+
+                await FileAPI.AppendAllTextAsync(_filePath, message);
             }
             catch (Exception) { }
         }
@@ -203,6 +214,10 @@ namespace Juice.Extensions.Logging.File
             if (log.Exception != null)
             {
                 _sb.AppendLine(log.Exception.StackTrace);
+            }
+            if (_sb.Length > 100000)
+            {
+                _flushWaiter.Cancel();
             }
         }
 
@@ -391,6 +406,7 @@ namespace Juice.Extensions.Logging.File
         #region Service
 
         protected CancellationTokenSource? _shutdown;
+        protected CancellationTokenSource _flushWaiter;
         protected Task? _backgroundTask;
 
         /// <summary>
@@ -404,6 +420,7 @@ namespace Juice.Extensions.Logging.File
 
             // Create a linked token so we can trigger cancellation outside of this token's cancellation
             _shutdown = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _flushWaiter = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token);
             _backgroundTask = Task.Run(ExecuteAsync);
 
             return Task.CompletedTask;
@@ -445,7 +462,12 @@ namespace Juice.Extensions.Logging.File
                 try
                 {
                     await FlushAsync();
-                    await Task.Delay(_bufferTime, _shutdown!.Token);
+                    if (_flushWaiter == null || _flushWaiter.IsCancellationRequested)
+                    {
+                        _flushWaiter = CancellationTokenSource.CreateLinkedTokenSource(_shutdown!.Token);
+                    }
+
+                    await Task.Delay(_bufferTime, _flushWaiter.Token);
                 }
                 catch (TaskCanceledException) { }
             }
