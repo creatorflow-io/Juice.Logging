@@ -3,6 +3,7 @@ using Juice.EF.Extensions;
 using Juice.Extensions.DependencyInjection;
 using Juice.Extensions.Logging.EF.LogEntries;
 using Juice.Extensions.Logging.EF.LogMetrics;
+using Juice.Extensions.MultiTenant;
 using Juice.MultiTenant;
 using Juice.Services;
 using Juice.XUnit;

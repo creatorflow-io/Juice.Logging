@@ -10,7 +10,7 @@
     <PackageIconUrl>https://avatars.githubusercontent.com/u/107674950</PackageIconUrl>
     <RepositoryUrl>https://github.com/creatorflow-io/Juice.Logging</RepositoryUrl>
 
-    <VersionPrefix>8.0.0</VersionPrefix>
+    <VersionPrefix>8.1.0</VersionPrefix>
     <VersionSuffix>local.$([System.DateTime]::Now.ToString(`yyyyMMdd`)).1</VersionSuffix>
   </PropertyGroup>
 
@@ -25,13 +25,13 @@
     <FinbuckleVersion>7.0.*</FinbuckleVersion>
     <SwashbuckleVersion>6.7.*</SwashbuckleVersion>
     <JuiceRefSuffix Condition="'$(JuiceRefSuffix)' == '' And '$(CI)' == ''">-alpha.*</JuiceRefSuffix>
-    <JuiceVersion>8.0.*$(JuiceRefSuffix)</JuiceVersion>
+    <JuiceVersion>8.3.*$(JuiceRefSuffix)</JuiceVersion>
     <XUnitVersion>2.9.*</XUnitVersion>
     <TestSdk>17.11.*</TestSdk>
   </PropertyGroup>
 
   <PropertyGroup Label="Versioning" Condition="'$(TargetFramework)' == 'net9.0'">
-    <MicrosoftExtensionsVersion>9.0.*-rc.*</MicrosoftExtensionsVersion>
+    <MicrosoftExtensionsVersion>9.0.*</MicrosoftExtensionsVersion>
   </PropertyGroup>
 
   <PropertyGroup Label="Versioning" Condition="'$(TargetFramework)' == 'net8.0'">

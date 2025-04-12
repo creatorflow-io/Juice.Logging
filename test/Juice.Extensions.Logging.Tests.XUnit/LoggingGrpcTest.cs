@@ -1,4 +1,5 @@
 ﻿using Juice.Extensions.DependencyInjection;
+using Juice.Extensions.MultiTenant;
 using Juice.MultiTenant;
 using Juice.Services;
 using Juice.XUnit;
