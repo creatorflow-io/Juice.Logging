@@ -10,7 +10,10 @@ on:
 
 jobs:
   build:
-    uses: creatorflow-io/shared-workflows/.github/workflows/shared-build.yml@master
+    uses: creatorflow-io/shared-workflows/.github/workflows/shared-build.yml@net8
     with:
        Stage: alpha
+       Target: |
+        6.x
+        8.x
     secrets: inherit
