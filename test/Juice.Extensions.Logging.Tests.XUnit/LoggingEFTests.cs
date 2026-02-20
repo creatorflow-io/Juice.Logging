@@ -131,7 +131,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                     var tenant = httpContext.RequestServices.GetRequiredService<ITenant>();
                     var context = httpContext.RequestServices.GetRequiredService<LogDbContext>();
                     tenant.Id.Should().BeSameAs(context.TenantInfo?.Id);
-                    var traceId = new DefaultStringIdGenerator().GenerateRandomId(6);
+                    var traceId = StringIdGenerator.Instance.GenerateRandomId(6);
 
                     var logger = httpContext.RequestServices.GetRequiredService<ILogger<LoggingTests>>();
 

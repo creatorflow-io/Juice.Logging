@@ -60,7 +60,7 @@ namespace Juice.Extensions.Logging.Tests.XUnit
                 await scope.ServiceProvider.TenantInvokeAsync(async context => {
                     var tenant = context.RequestServices.GetRequiredService<ITenant>();
 
-                    var traceId = new DefaultStringIdGenerator().GenerateRandomId(6);
+                    var traceId = StringIdGenerator.Instance.GenerateRandomId(6);
 
                     var logger = context.RequestServices.GetRequiredService<ILogger<LoggingTests>>();
 
